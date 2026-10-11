@@ -488,14 +488,16 @@ async function delBlob(id){mem.delete(id);const db=await idb();if(!db)return;try
 /* ---------- 肩書・実績 ---------- */
 function streakMax(){const ds=[...new Set(S.log.map(l=>l.d))].map(d=>{const p=d.split('-').map(Number);return Math.floor(Date.UTC(p[0],p[1]-1,p[2])/864e5)}).sort((a,b)=>a-b);let best=0,run=0;ds.forEach((d,i)=>{run=i&&d===ds[i-1]+1?run+1:1;best=Math.max(best,run)});return best}
 const DEF_A=[['first_set','はじめの単語帳','単語帳を1つ作る','setsMade',1],['flip50','めくり名人','カードを50回めくる','flips',50],['know10','覚えた!の10回','「覚えた」を10回押す','known',10],['timer1','時間との勝負','時間モードで1周する','timerClear',1],['pdf1','教材ライブラリ','PDFを1つ追加する','uploads',1],['ev1','予定を立てた','予定を1つ追加する','events',1],['grp','仲間入り','グループに参加または作成する','groups',1],['h1','1時間の旅','累計勉強時間が1時間','total_sec',3600],['h10','10時間の探究','累計勉強時間が10時間','total_sec',36000],['st3','三日坊主卒業','3日連続で勉強する','streak',3]].map(a=>({id:a[0],name:a[1],descr:a[2],stat:a[3],threshold:a[4]}));
-const DEF_T=[['t0','見習い学習者',null],['t1','単語の芽','first_set'],['t2','めくり名人','flip50'],['t3','暗記の達人','know10'],['t4','時間の挑戦者','timer1'],['t5','資料の番人','pdf1'],['t6','計画の人','ev1'],['t7','仲間とともに','grp'],['t8','1時間の旅人','h1'],['t9','10時間の探究者','h10'],['t10','継続は力なり','st3']].map(a=>({id:a[0],name:a[1],need_ach:a[2]}));
+const DEF_T=[['t0','見習い','学習者',null],['t1','単語の','芽','first_set'],['t2','めくりの','名人','flip50'],['t3','暗記の','達人','know10'],['t4','時間の','挑戦者','timer1'],['t5','資料の','番人','pdf1'],['t6','計画の','人','ev1'],['t7','仲間と','ともに','grp'],['t8','1時間の','旅人','h1'],['t9','10時間の','探究者','h10'],['t10','継続は','力なり','st3']].map(a=>({id:a[0],front:a[1],back:a[2],name:a[1]+a[2],need_ach:a[3]}));
 let ACH=[],TITLES=[];
 const statVal=k=>k==='total_sec'?totalSec():k==='streak'?streakMax():(+S.stats[k]||0);
-function setDefs(a,t){ACH=a.map(x=>({id:x.id,n:x.name,d:x.descr||'',ok:()=>statVal(x.stat)>=+x.threshold}));TITLES=t.map(x=>({id:x.id,n:x.name,need:x.need_ach||null}));if(!TITLES.length)TITLES=[{id:'t0',n:'見習い学習者',need:null}]}
+function setDefs(a,t){ACH=a.map(x=>({id:x.id,n:x.name,d:x.descr||'',ok:()=>statVal(x.stat)>=+x.threshold}));TITLES=t.map(x=>{const f=x.front||'',b=x.back||(f?'':x.name);return{id:x.id,f,b,n:f+b,need:x.need_ach||null}});if(!TITLES.length)TITLES=[{id:'t0',f:'見習い',b:'学習者',n:'見習い学習者',need:null}]}
 function initDefs(){let c=null;try{c=JSON.parse(localStorage.getItem('manabi.defs')||'null')}catch(e){}setDefs(c&&c.a&&c.a.length?c.a:DEF_A,c&&c.t&&c.t.length?c.t:DEF_T)}
 const titleOk=t=>!t.need||S.ach[t.need];
 const titleById=id=>TITLES.find(t=>t.id===id)||TITLES[0];
-const titleName=()=>titleById(S.user&&S.user.title).n;
+const tfOf=()=>(S.user&&(S.user.tf||S.user.title))||'t0',tbOf=()=>(S.user&&(S.user.tb||S.user.title))||'t0';
+const titleName=()=>titleById(tfOf()).f+titleById(tbOf()).b;
+const joinTitle=(f,b)=>titleById(f).f+titleById(b).b;
 function checkAch(){let n=0;ACH.forEach(a=>{if(!S.ach[a.id]&&a.ok()){S.ach[a.id]=Date.now();n++;setTimeout(()=>toast('実績を解除: '+a.n),400*n)}});if(n)save()}
 
 
@@ -833,10 +835,12 @@ V.mypage=()=>{const u=S.user;const got=ACH.filter(a=>S.ach[a.id]);
   <button class="mplink" data-act="goAchs">実績一覧<span class="mpl-r">${got.length}/${ACH.length}${svg('chev',16)}</span></button></div></div>`};
 function viewMi(){const uid=view.uid;if(!uid||!S.myGroup||!S.groups[S.myGroup])return null;const m=memberInfo(S.myGroup,uid);return m.self?null:m}
 V.titles=()=>{const mi=viewMi(),cur=mi?mi.title:titleName();
-  const cells=TITLES.map(x=>{const ok=mi?(!x.need||mi.ach.includes(x.need)):titleOk(x);
-    if(!ok)return`<div class="item blank" aria-hidden="true"></div>`;const on=x.n===cur;
-    return mi?`<div class="item tcell ${on?'cur':''}"><span class="t">${esc(x.n)}</span></div>`:`<button class="item tcell ${on?'cur':''}" data-act="titleSet" data-id="${x.id}" aria-pressed="${on}"><span class="t">${esc(x.n)}</span>${on?svg('check',18):''}</button>`}).join('');
-  return`<div class="view">${sub('肩書一覧')}<div class="list">${cells}</div></div>`};
+  const sec=(part,label)=>{const sel=mi?null:(part==='f'?tfOf():tbOf());
+    const cells=TITLES.map(x=>{const ok=mi?(!x.need||mi.ach.includes(x.need)):titleOk(x);
+      if(!ok)return`<div class="item blank" aria-hidden="true"></div>`;const on=!mi&&x.id===titleById(sel).id,txt=part==='f'?x.f:x.b;
+      return mi?`<div class="item tcell"><span class="t">${esc(txt)}</span></div>`:`<button class="item tcell ${on?'cur':''}" data-act="titleSet" data-part="${part}" data-id="${x.id}" aria-pressed="${on}"><span class="t">${esc(txt)}</span>${on?svg('check',18):''}</button>`}).join('');
+    return`<div class="mp-sec"><h3 style="margin:18px 4px 8px">${label}</h3><div class="list">${cells}</div></div>`};
+  return`<div class="view">${sub('肩書一覧')}<div class="t" style="text-align:center;font-size:20px;font-weight:700;margin:14px 0">${esc(cur)}</div>${sec('f','前半')}${sec('b','後半')}</div>`};
 V.achs=()=>{const mi=viewMi();
   const cells=ACH.map(a=>{const ok=mi?mi.ach.includes(a.id):!!S.ach[a.id];
     return ok?`<div class="item tcell"><div class="grow"><div class="t">${esc(a.n)}</div><div class="small muted">${esc(a.d)}</div></div></div>`:`<div class="item blank" aria-hidden="true"></div>`}).join('');
@@ -1039,12 +1043,12 @@ async function loadGroups(){if(!SB||!ME)return;
     SB.from('events').select('id,group_id,by,title,date,time,notify').in('group_id',ids).order('date')]);
   for(const r of [m,st,sj,fl,ev])if(r.error)throw r.error;
   const uids=[...new Set(m.data.map(x=>x.user_id))];
-  const pr=await SB.from('profiles').select('id,uid,nick,birth,icon,title_id,total_sec,ach').in('id',uids);if(pr.error)throw pr.error;
+  const pr=await SB.from('profiles').select('id,uid,nick,birth,icon,title_id,title_front,title_back,total_sec,ach').in('id',uids);if(pr.error)throw pr.error;
   const byId={};pr.data.forEach(p=>byId[p.id]=p);const H=id=>byId[id]?byId[id].uid:'?';
   const next={},cat={};sj.data.forEach(s=>cat[s.id]=s.cat);
   rows.forEach(g=>{const mem=m.data.filter(x=>x.group_id===g.id).sort((a,b)=>String(a.joined_at).localeCompare(String(b.joined_at))).map(x=>x.user_id);
     const o=next[g.code]={id:g.id,name:g.name,created:Date.parse(g.created_at)||0,owner:H(g.owner),members:mem.map(H),profiles:{}};
-    mem.forEach(id=>{const p=byId[id];if(p)o.profiles[p.uid]={nick:p.nick,icon:p.icon,title:titleById(p.title_id).n,birth:String(p.birth||'').slice(5),sec:+p.total_sec||0,ach:Object.keys(p.ach||{})}});
+    mem.forEach(id=>{const p=byId[id];if(p)o.profiles[p.uid]={nick:p.nick,icon:p.icon,title:joinTitle(p.title_front||p.title_id,p.title_back||p.title_id),birth:String(p.birth||'').slice(5),sec:+p.total_sec||0,ach:Object.keys(p.ach||{})}});
     const sp=scope(g.code);
     sp.sets=st.data.filter(x=>x.group_id===g.id).map(x=>({id:x.id,by:H(x.by),name:x.name,cards:(x.cards||[]).map((c,i)=>({id:x.id+':'+i,t:c.t,d:c.d}))}));
     sp.subs=sj.data.filter(x=>x.group_id===g.id).map(x=>({id:x.id,by:H(x.by),cat:x.cat,name:x.name}));
@@ -1083,9 +1087,9 @@ async function enter(user){
   if(err){if(S.user&&S.user.done&&S.user.id===user.id){OFFL=true}else{AUTH='neterr';render();return}}
   else if(prof){
     if(prof.banned){AUTH='banned';render();return}
-    S.user={id:user.id,email,nick:prof.nick,uid:prof.uid,birth:prof.birth||'',icon:prof.icon||'',title:prof.title_id,done:true,termsV:pp&&pp.terms_v||null,step:0};
+    S.user={id:user.id,email,nick:prof.nick,uid:prof.uid,birth:prof.birth||'',icon:prof.icon||'',tf:prof.title_front||prof.title_id||'t0',tb:prof.title_back||prof.title_id||'t0',done:true,termsV:pp&&pp.terms_v||null,step:0};
     Object.keys(prof.stats||{}).forEach(k=>{S.stats[k]=Math.max(+S.stats[k]||0,+prof.stats[k]||0)});S.ach=Object.assign({},prof.ach||{},S.ach);lastSync=JSON.stringify([S.stats,S.ach])}
-  else{if(!S.user||S.user.done||S.user.id!==user.id)S.user={id:user.id,email,step:0,nick:'',uid:'',birth:'',icon:'',title:'t0',done:false};S.user.termsV=pp&&pp.terms_v||null}
+  else{if(!S.user||S.user.done||S.user.id!==user.id)S.user={id:user.id,email,step:0,nick:'',uid:'',birth:'',icon:'',tf:'t0',tb:'t0',done:false};S.user.termsV=pp&&pp.terms_v||null}
   AUTH='in';render();
   if(err)return;
   if(S.user.done){if(S.timer&&S.timer.run&&S.user.termsV===TERMS_V)setTimeout(openFocus,150);bgLoad()}}
@@ -1107,7 +1111,7 @@ const A={
 
  onbNext:async()=>{const u=S.user;if(!onbOk())return;if(u.step<3){navDir='fwd';u.step++;save();render();return}
    const b=$('#nextBtn');if(b)b.disabled=true;u.uid=u.uid.trim().toLowerCase();u.nick=u.nick.trim();
-   const r=await SB.from('profiles').insert({id:ME.id,uid:u.uid,nick:u.nick,birth:u.birth,icon:u.icon||'',title_id:'t0'});
+   const r=await SB.from('profiles').insert({id:ME.id,uid:u.uid,nick:u.nick,birth:u.birth,icon:u.icon||'',title_id:'t0',title_front:'t0',title_back:'t0'});
    if(r.error){const dup=r.error.code==='23505';toast(dup?'このIDはすでに使われています':errMsg(r.error));if(dup){UIDC[u.uid]=false;u.step=1;save();render()}else nextBtn();return}
    u.done=true;u.id=ME.id;
    const p=scope('private');if(!p.sets.length)p.sets.push({id:rid(),name:'英単語(サンプル)',sample:true,cards:[['abandon','捨てる、見捨てる'],['benefit','利益、恩恵'],['consider','よく考える'],['decrease','減る、減らす'],['effort','努力'],['foreign','外国の'],['gather','集める、集まる'],['honest','正直な'],['improve','改善する'],['journey','旅、道のり']].map(c=>({id:rid(),t:c[0],d:c[1]}))});
@@ -1265,7 +1269,7 @@ const A={
  tmToggle:()=>{const t=S.timer;if(t.run){t.acc+=Date.now()-t.start;t.run=false}else{t.start=Date.now();t.run=true}save();render()},
  tmSave:()=>{const sec=Math.round(timerSec());if(sec<1){S.timer={run:false,start:0,acc:0};save();render();return}addLog(sec,'timer');S.timer={run:false,start:0,acc:0};save();toast(fmtDur(sec)+'を記録しました');checkAch();render()},
  /* 肩書・登録情報 */
- titleSet:t=>{const ti=TITLES.find(x=>x.id===t.dataset.id);if(!ti)return;if(!titleOk(ti)){const a=ACH.find(a=>a.id===ti.need);toast('条件: '+(a?a.d:''));return}S.user.title=ti.id;save();render();if(SB&&ME)SB.from('profiles').update({title_id:ti.id}).eq('id',ME.id).then(()=>{})},
+ titleSet:t=>{const ti=TITLES.find(x=>x.id===t.dataset.id),pt=t.dataset.part==='b'?'b':'f';if(!ti)return;if(!titleOk(ti)){const a=ACH.find(a=>a.id===ti.need);toast('条件: '+(a?a.d:''));return}S.user.tf=tfOf();S.user.tb=tbOf();if(pt==='f')S.user.tf=ti.id;else S.user.tb=ti.id;save();render();if(SB&&ME)SB.from('profiles').update({title_front:S.user.tf,title_back:S.user.tb,title_id:S.user.tf}).eq('id',ME.id).then(()=>{})},
  iconEdit:()=>{sheet(`<h3>アイコンを変更</h3><div class="cropwrap" id="cropHost"></div><button class="btn primary block" id="iconSave" data-act="iconSave" disabled>この範囲に決める</button>`,()=>cropMount($('#cropHost'),''))},
  iconSave:async()=>{if(C&&C.pending){const r=await SB.from('profiles').update({icon:C.pending}).eq('id',ME.id);if(r.error){toast(errMsg(r.error));return}S.user.icon=C.pending;save();closeSheet();render();toast('アイコンを変更しました');loadGroups().then(softRender).catch(()=>{})}},
  profEdit:()=>{view.edit=true;render()},
