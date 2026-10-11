@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>まなびノート 管理</title>
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+:root{--ink:#1B2336;--mut:#6B7488;--line:#E3E7EF;--bg:#F6F8FC;--acc:#2250D8;--bad:#D93B3B;--good:#17894F;--warn:#E07B00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 'Higure Gothic',-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif}
+@font-face{font-family:'Higure Gothic';font-weight:400;src:url(fonts/higure-400.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'Higure Gothic';font-weight:700;src:url(fonts/higure-700.woff2) format('woff2');font-display:swap}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 16px}
+header img{height:24px}header b{font-size:15px}header .sp{flex:1}
+nav{display:flex;gap:4px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:45px;z-index:4}
+nav button{border:0;background:none;padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;color:var(--mut);font-weight:700}
+nav button.on{background:var(--acc);color:#fff}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h2{font-size:18px;margin:4px 0 12px}h3{font-size:15px;margin:18px 0 8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}.stat small{color:var(--mut);display:block}.stat b{font-size:22px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 14px;cursor:pointer;font-weight:700}
+.btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn.bad{color:var(--bad)}.btn.bad:hover{border-color:var(--bad)}.btn.sm{padding:4px 10px;font-size:13px}.btn:disabled{opacity:.5;cursor:default}
+.in{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}.in:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grow{flex:1;min-width:0}
+table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{color:var(--mut);font-size:12px;white-space:nowrap}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff}.wrap table{min-width:720px}
+.tag{display:inline-block;border-radius:999px;padding:1px 10px;font-size:12px;font-weight:700;background:#EEF2FF;color:var(--acc)}.tag.bad{background:#FDECEC;color:var(--bad)}.tag.warn{background:#FFF3E0;color:var(--warn)}.tag.good{background:#E6F6EE;color:var(--good)}
+.mut{color:var(--mut)}.small{font-size:12px}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.center{min-height:70vh;display:grid;place-items:center;text-align:center}
+.rte-tb{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}.rte-tb button{min-width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}
+.rte-tb .cdot{width:34px;padding:0;position:relative}.rte-tb .cdot::after{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--c)}
+.rte{min-height:220px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;overflow-wrap:anywhere}.rte:empty::before{content:attr(data-ph);color:var(--mut)}.rte img{max-width:100%;border-radius:8px}
+dialog{border:0;border-radius:16px;padding:18px;max-width:min(520px,92vw);width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}dialog::backdrop{background:rgba(10,15,30,.4)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}#toast.on{opacity:1}
+.item{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}
+details{border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px}summary{cursor:pointer;padding:10px 14px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:center}summary::-webkit-details-marker{display:none}
+details>div{padding:0 14px 12px}
+</style></head><body>
+<header><img src="logo.webp" alt="まなびノート"><b>管理</b><span class="sp"></span><span id="who" class="mut small"></span><button class="btn sm" id="out" hidden>ログアウト</button></header>
+<nav id="nav" hidden></nav>
+<main id="main"></main>
+<dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+'use strict';
+const CFG=window.MANABI||{};const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtB=n=>n>=1073741824?(n/1073741824).toFixed(2)+'GB':n>=1048576?(n/1048576).toFixed(1)+'MB':Math.round(n/1024)+'KB';
+const fmtS=s=>{s=+s||0;const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+'時間'+m+'分':m+'分'};
+const fmtD=t=>{const d=new Date(t);return isNaN(d)?'':d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()};
+let SB=null,ME=null,tab='home';const D={};
+let tT=0;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),2600)}
+const errT=e=>{const m=String((e&&e.message)||e||'');return /admin only|row-level|policy/i.test(m)?'権限がありません':/duplicate|23505/i.test(m)?'同じIDがすでにあります':/fetch|network/i.test(m)?'通信できませんでした':'できませんでした: '+m.slice(0,80)}
+function dlg(html,bind){const d=$('#dlg');d.innerHTML=html;if(!d.open)d.showModal();if(bind)bind(d);return d}
+const closeDlg=()=>{const d=$('#dlg');if(d.open)d.close()};
+function ask(msg,yes,label){dlg(`<h3 style="margin-top:0">${esc(msg)}</h3><div class="row" style="justify-content:flex-end"><button class="btn" data-x>やめる</button><button class="btn bad" data-y>${esc(label||'削除する')}</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{closeDlg();await yes()}})}
+async function run(fn,okMsg){try{const r=await fn();if(r&&r.error)throw r.error;if(r&&Array.isArray(r.data)&&!r.data.length)throw new Error('admin only');if(okMsg)toast(okMsg);return true}catch(e){toast(errT(e));return false}}
+
+/* ----- 起動・ログイン ----- */
+function view(html){$('#main').innerHTML=html}
+function loginView(msg){$('#nav').hidden=true;$('#out').hidden=true;$('#who').textContent='';view(`<div class="center"><div><img src="logo.webp" alt="" style="height:34px;margin-bottom:16px"><p>${esc(msg||'管理者のGoogleアカウントでログインしてください')}</p><button class="btn pri" id="go">Googleでログイン</button></div></div>`);$('#go').onclick=async()=>{try{const r=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(r.error)throw r.error}catch(e){toast('ログインを始められませんでした')}}}
+async function boot(){
+  if(!window.supabase||!CFG.url){view('<div class="center"><p>接続設定を読み込めませんでした</p></div>');return}
+  SB=supabase.createClient(CFG.url,CFG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
+  let ses=null;try{ses=(await SB.auth.getSession()).data.session}catch(e){}
+  try{if(/[?&]code=|access_token=/.test(location.search+location.hash))history.replaceState(null,'',location.pathname)}catch(e){}
+  if(!ses){loginView();return}
+  ME=ses.user;$('#who').textContent=ME.email||'';$('#out').hidden=false;$('#out').onclick=async()=>{try{await SB.auth.signOut({scope:'local'})}catch(e){}loginView()};
+  const r=await SB.rpc('admin_stats');
+  if(r.error){const net=/fetch|network/i.test(r.error.message||'');view(`<div class="center"><div><p>${net?'通信できませんでした':'このアカウントには管理者の権限がありません'}</p><p class="mut small">${esc(ME.email||'')}</p></div></div>`);return}
+  D.stats=r.data;$('#nav').hidden=false;drawNav();go(tab)}
+const TABS=[['home','概要'],['news','お知らせ'],['users','利用者'],['groups','グループ'],['defs','実績・肩書'],['set','設定']];
+function drawNav(){const n=$('#nav');n.innerHTML=TABS.map(t=>`<button data-t="${t[0]}" class="${t[0]===tab?'on':''}">${t[1]}</button>`).join('');n.onclick=e=>{const b=e.target.closest('[data-t]');if(b)go(b.dataset.t)}}
+async function go(t){tab=t;drawNav();view('<p class="mut">読み込み中…</p>');try{await V[t]()}catch(e){view(`<p>${esc(errT(e))}</p>`)}window.scrollTo(0,0)}
+const V={};
+
+/* ----- 概要 ----- */
+V.home=async()=>{const r=await SB.rpc('admin_stats');if(r.error)throw r.error;const s=r.data;D.stats=s;
+  const st=await SB.from('app_settings').select('key,value');const cap=+((st.data||[]).find(x=>x.key==='user_cap_mb')||{value:CFG.capMB||100}).value;
+  const FREE=1073741824,pct=Math.min(100,s.storage_bytes/FREE*100);
+  view(`<h2>概要</h2><div class="grid">
+   <div class="stat"><small>利用者</small><b>${s.users}</b></div><div class="stat"><small>直近7日に勉強した人</small><b>${s.active_7d}</b></div><div class="stat"><small>利用停止</small><b>${s.banned}</b></div>
+   <div class="stat"><small>グループ</small><b>${s.groups}</b></div><div class="stat"><small>グループの単語帳</small><b>${s.sets}</b></div><div class="stat"><small>PDF</small><b>${s.files}</b></div>
+   <div class="stat"><small>グループの予定</small><b>${s.events}</b></div><div class="stat"><small>みんなの勉強時間</small><b>${fmtS(s.study_sec)}</b></div></div>
+   <h3>PDFの保存容量(無料枠 1GB)</h3><div class="card"><div class="row"><b>${fmtB(s.storage_bytes)}</b><span class="mut">/ 1GB</span><span class="grow"></span><span class="mut small">1人あたりの上限 ${cap}MB</span></div><div class="bar" style="margin-top:8px"><i style="width:${pct}%;${pct>85?'background:var(--bad)':''}"></i></div></div>`)};
+
+/* ----- お知らせ ----- */
+const SZ={1:'x-small',2:'small',3:'medium',4:'large',5:'x-large',6:'xx-large',7:'xxx-large'};
+function cleanHTML(h){const doc=new DOMParser().parseFromString('<body>'+(h||''),'text/html');const OK=/^(div|p|br|b|strong|i|em|u|span|font|img)$/;const colorOK=c=>/^(#[0-9a-f]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))$/i.test(String(c).trim());
+  const walk=(src,dst)=>{src.childNodes.forEach(n=>{if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}if(n.nodeType!==1)return;const tag=n.tagName.toLowerCase();
+    if(tag==='img'){const src=n.getAttribute('src')||'';const pre=CFG.url+'/storage/v1/object/public/news/';if(src.indexOf(pre)===0&&!/["'<>\s]/.test(src)){const im=document.createElement('img');im.setAttribute('src',src);im.setAttribute('alt','');dst.appendChild(im)}return}
+    if(tag==='script'||tag==='style')return;if(!OK.test(tag)){walk(n,dst);return}if(tag==='br'){dst.appendChild(document.createElement('br'));return}
+    const el=document.createElement(tag==='strong'?'b':tag==='em'?'i':tag==='font'?'span':tag);const st=[];const s=n.style;
+    if(tag==='font'&&n.getAttribute('color')&&colorOK(n.getAttribute('color')))st.push('color:'+n.getAttribute('color'));if(tag==='font'&&SZ[n.getAttribute('size')])st.push('font-size:'+SZ[n.getAttribute('size')]);
+    if(s){if(s.color&&colorOK(s.color))st.push('color:'+s.color);if(Object.values(SZ).includes(s.fontSize))st.push('font-size:'+s.fontSize);if(/^(bold|[6-9]00)$/.test(s.fontWeight))st.push('font-weight:700');if(s.fontStyle==='italic')st.push('font-style:italic');if(/underline/.test(s.textDecorationLine||s.textDecoration||''))st.push('text-decoration:underline')}
+    if(st.length)el.setAttribute('style',st.join(';'));walk(n,el);dst.appendChild(el)})};
+  const out=document.createElement('div');walk(doc.body,out);return out.innerHTML}
+const txt=h=>{const d=document.createElement('div');d.innerHTML=cleanHTML(h);return d.textContent.replace(/\s+/g,' ').trim()};
+V.news=async()=>{const r=await SB.from('announcements').select('id,title,body,created_at,updated_at').order('created_at',{ascending:false});if(r.error)throw r.error;D.news=r.data;
+  view(`<div class="row"><h2 class="grow">お知らせ</h2><button class="btn pri" id="nn">新しく書く</button></div><div class="card">${r.data.length?r.data.map(n=>`<div class="item"><div class="grow"><b>${esc(n.title)}</b><div class="mut small">${fmtD(n.created_at)} ・ ${esc(txt(n.body).slice(0,80))}</div></div><button class="btn sm" data-e="${esc(n.id)}">編集</button><button class="btn sm bad" data-d="${esc(n.id)}">削除</button></div>`).join(''):'<p class="mut">まだありません</p>'}</div>`);
+  $('#nn').onclick=()=>newsEdit();$('#main').onclick=e=>{const b=e.target.closest('[data-e],[data-d]');if(!b)return;if(b.dataset.e)newsEdit(D.news.find(x=>x.id===b.dataset.e));else ask('このお知らせを削除しますか?',async()=>{if(await run(()=>SB.from('announcements').delete().eq('id',b.dataset.d).select('id'),'削除しました'))go('news')})}};
+const COLORS=['#1B2336','#D93B3B','#E07B00','#17894F','#2250D8','#7A4DD8','#D6368F'];
+let RSEL=null;document.addEventListener('selectionchange',()=>{const ed=$('#ed');const s=getSelection();if(ed&&s.rangeCount&&ed.contains(s.anchorNode))RSEL=s.getRangeAt(0).cloneRange()});
+function rest(){const ed=$('#ed');if(!ed)return false;ed.focus();const s=getSelection();s.removeAllRanges();if(RSEL&&ed.contains(RSEL.startContainer))s.addRange(RSEL);else{const r=document.createRange();r.selectNodeContents(ed);r.collapse(false);s.addRange(r)}return true}
+function newsEdit(n){view(`<div class="row"><button class="btn sm" id="bk">戻る</button><h2 class="grow" style="margin:0">${n?'お知らせを編集':'お知らせを書く'}</h2></div>
+  <div class="card"><input class="in" id="nt" maxlength="80" placeholder="タイトル" value="${esc(n?n.title:'')}">
+  <div class="rte-tb"><button data-f="bold"><b>B</b></button><button data-f="italic"><i>I</i></button><button data-f="underline"><u>U</u></button>
+  <button data-f="size" data-s="2" style="font-size:12px">小</button><button data-f="size" data-s="3">中</button><button data-f="size" data-s="5" style="font-size:18px">大</button><button data-f="size" data-s="6" style="width:52px;font-size:20px">特大</button>
+  ${COLORS.map(c=>`<button class="cdot" data-f="color" data-c="${c}" style="--c:${c}" aria-label="文字色"></button>`).join('')}<button data-f="img" style="width:auto;padding:0 12px">画像を入れる</button></div>
+  <div class="rte" id="ed" contenteditable="true" data-ph="本文">${n?cleanHTML(n.body):''}</div><input type="file" id="fi" accept="image/*" hidden>
+  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn pri" id="sv">${n?'保存する':'投稿する'}</button></div></div>`);
+  $('#bk').onclick=()=>go('news');
+  document.querySelector('.rte-tb').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
+  $('#ed').addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text/plain'))});
+  document.querySelector('.rte-tb').onclick=e=>{const b=e.target.closest('[data-f]');if(!b||!rest())return;const k=b.dataset.f;if(k==='img'){$('#fi').click();return}try{document.execCommand('styleWithCSS',false,true)}catch(x){}
+    if(k==='bold'||k==='italic'||k==='underline')document.execCommand(k);else if(k==='color')document.execCommand('foreColor',false,b.dataset.c);else if(k==='size')document.execCommand('fontSize',false,b.dataset.s)};
+  $('#fi').onchange=async()=>{const f=$('#fi').files[0];$('#fi').value='';if(!f)return;toast('画像をアップロードしています');
+    try{const blob=await shrink(f);const name=Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'.jpg';const up=await SB.storage.from('news').upload(name,blob,{contentType:'image/jpeg'});if(up.error)throw up.error;
+      const url=CFG.url+'/storage/v1/object/public/news/'+name;if(!rest())return;document.execCommand('insertHTML',false,'<div><img src="'+url+'" alt=""></div><div><br></div>');toast('画像を入れました')}catch(e){toast('画像を入れられませんでした')}};
+  $('#sv').onclick=async()=>{const title=$('#nt').value.trim();if(!title){$('#nt').focus();toast('タイトルを入力してください');return}const body=cleanHTML($('#ed').innerHTML);
+    const ok=await run(()=>n?SB.from('announcements').update({title,body,updated_at:new Date().toISOString()}).eq('id',n.id).select('id'):SB.from('announcements').insert({title,body}),n?'保存しました':'投稿しました');if(ok)go('news')}}
+async function shrink(file){const url=URL.createObjectURL(file);const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});URL.revokeObjectURL(url);
+  const k=Math.min(1,1600/Math.max(im.naturalWidth,im.naturalHeight));const w=Math.round(im.naturalWidth*k),h=Math.round(im.naturalHeight*k);const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);
+  return await new Promise(r=>cv.toBlob(r,'image/jpeg',.85))}
+
+/* ----- 利用者 ----- */
+V.users=async()=>{const r=await SB.rpc('admin_users');if(r.error)throw r.error;D.users=r.data;drawUsers('')};
+function drawUsers(q){q=q.trim().toLowerCase();const L=D.users.filter(u=>!q||[u.nick,u.uid,u.email].some(x=>String(x||'').toLowerCase().includes(q)));
+  view(`<h2>利用者 <span class="mut small">${D.users.length}人</span></h2><input class="in" id="q" placeholder="名前・ID・メールで探す" value="${esc(q)}" style="margin-bottom:10px">
+  <div class="wrap"><table><thead><tr><th>名前</th><th>メール</th><th>状態</th><th>勉強時間</th><th>PDF容量</th><th>登録日</th><th></th></tr></thead><tbody>${L.map(u=>`<tr><td><b>${esc(u.nick)}</b><div class="mut small">@${esc(u.uid)}</div></td><td class="small">${esc(u.email||'')}</td>
+  <td>${u.banned?'<span class="tag bad">永久BAN</span>':u.warn_count?`<span class="tag warn">警告${u.warn_count}回</span>`:'<span class="tag good">通常</span>'}</td><td>${fmtS(u.total_sec)}</td><td>${fmtB(+u.bytes)}</td><td class="small">${fmtD(u.created_at)}</td>
+  <td style="white-space:nowrap"><button class="btn sm" data-w="${u.id}">警告</button> <button class="btn sm ${u.banned?'':'bad'}" data-b="${u.id}">${u.banned?'解除':'BAN'}</button> <button class="btn sm" data-h="${u.id}">履歴</button></td></tr>`).join('')||'<tr><td colspan="7" class="mut">該当なし</td></tr>'}</tbody></table></div>`);
+  const qi=$('#q');qi.oninput=()=>{const p=qi.selectionStart;drawUsers(qi.value);const n=$('#q');n.focus();n.setSelectionRange(p,p)};
+  $('#main').onclick=e=>{const b=e.target.closest('[data-w],[data-b],[data-h]');if(!b)return;const u=D.users.find(x=>x.id===(b.dataset.w||b.dataset.b||b.dataset.h));if(!u)return;
+    if(b.dataset.w)warnDlg(u);else if(b.dataset.b)ask(u.banned?`${u.nick}さんの利用停止を解除しますか?`:`${u.nick}さんを永久BANにしますか?`,async()=>{if(await run(()=>SB.rpc('admin_set_ban',{target:u.id,b:!u.banned}),u.banned?'解除しました':'BANしました'))go('users')},u.banned?'解除する':'BANする');else hist(u)}}
+function warnDlg(u){dlg(`<h3 style="margin-top:0">${esc(u.nick)}さんに警告</h3><p class="mut small">いまの警告 ${u.warn_count}回。2回目の警告で自動的に永久BANになります。</p><textarea class="in" id="wr" rows="3" placeholder="理由(本人に表示されます)"></textarea><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-x>やめる</button><button class="btn pri" data-y>警告する</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{const why=$('#wr').value.trim();if(!why){toast('理由を入力してください');return}closeDlg();if(await run(()=>SB.rpc('admin_warn',{target:u.id,why}),'警告しました'))go('users')}})}
+async function hist(u){const r=await SB.from('warnings').select('reason,seen,created_at').eq('user_id',u.id).order('created_at',{ascending:false});
+  dlg(`<h3 style="margin-top:0">${esc(u.nick)}さんの警告履歴</h3>${(r.data||[]).length?r.data.map(w=>`<div class="item"><div class="grow">${esc(w.reason)}<div class="mut small">${fmtD(w.created_at)} ・ ${w.seen?'確認済み':'未確認'}</div></div></div>`).join(''):'<p class="mut">なし</p>'}<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn" data-x>閉じる</button></div>`,d=>d.querySelector('[data-x]').onclick=closeDlg)}
+
+/* ----- グループ ----- */
+V.groups=async()=>{const [g,m,st,sj,fl,ev,pr]=await Promise.all([SB.from('groups').select('id,code,name,owner,created_at').order('created_at',{ascending:false}),SB.from('group_members').select('group_id,user_id'),SB.from('group_sets').select('id,group_id,by,name,cards,created_at'),SB.from('subjects').select('id,group_id,by,cat,name'),SB.from('files').select('id,group_id,subject_id,by,name,size,path'),SB.from('events').select('id,group_id,by,title,date'),SB.from('profiles').select('id,uid,nick')]);
+  for(const x of [g,m,st,sj,fl,ev,pr])if(x.error)throw x.error;const P={};pr.data.forEach(p=>P[p.id]=p.nick+' (@'+p.uid+')');const nm=id=>P[id]||'?';D.g={g:g.data,m:m.data,st:st.data,sj:sj.data,fl:fl.data,ev:ev.data};
+  const CAT={text:'教科書',ans:'解答',past:'過去問'};
+  view(`<h2>グループ <span class="mut small">${g.data.length}</span></h2>${g.data.map(x=>{const mem=m.data.filter(y=>y.group_id===x.id),sets=st.data.filter(y=>y.group_id===x.id),sjs=sj.data.filter(y=>y.group_id===x.id),fls=fl.data.filter(y=>y.group_id===x.id),evs=ev.data.filter(y=>y.group_id===x.id);
+   return`<details><summary><span class="grow">${esc(x.name)} <span class="tag">${esc(x.code)}</span></span><span class="mut small">${mem.length}人 ・ PDF ${fls.length}</span></summary><div>
+   <p class="small mut">作成者: ${esc(nm(x.owner))} ・ メンバー: ${esc(mem.map(y=>nm(y.user_id)).join('、'))}</p>
+   <b>単語帳</b>${sets.map(s=>`<div class="item"><div class="grow">${esc(s.name)} <span class="mut small">${(s.cards||[]).length}語 ・ 投稿者 ${esc(nm(s.by))}</span></div><button class="btn sm bad" data-del="group_sets:${s.id}">削除</button></div>`).join('')||'<div class="mut small">なし</div>'}
+   <b>教科・PDF</b>${sjs.map(s=>`<div class="item"><div class="grow">${esc(CAT[s.cat]||s.cat)} / ${esc(s.name)} <span class="mut small">投稿者 ${esc(nm(s.by))}</span></div><button class="btn sm bad" data-del="subjects:${s.id}">教科ごと削除</button></div>${fls.filter(f=>f.subject_id===s.id).map(f=>`<div class="item" style="padding-left:20px"><div class="grow">${esc(f.name)} <span class="mut small">${fmtB(+f.size)} ・ 投稿者 ${esc(nm(f.by))}</span></div><button class="btn sm bad" data-del="files:${f.id}">削除</button></div>`).join('')}`).join('')||'<div class="mut small">なし</div>'}
+   <b>予定</b>${evs.map(e=>`<div class="item"><div class="grow">${esc(e.date)} ${esc(e.title)} <span class="mut small">投稿者 ${esc(nm(e.by))}</span></div><button class="btn sm bad" data-del="events:${e.id}">削除</button></div>`).join('')||'<div class="mut small">なし</div>'}
+   <div style="margin-top:12px"><button class="btn bad" data-del="groups:${x.id}">このグループをすべて削除</button></div></div></details>`}).join('')||'<p class="mut">まだありません</p>'}`);
+  const open=new Set(JSON.parse(sessionStorage.getItem('ogr')||'[]'));$('#main').querySelectorAll('details').forEach((d,i)=>{if(open.has(i))d.open=true;d.ontoggle=()=>{const s=[...$('#main').querySelectorAll('details')].map((x,j)=>x.open?j:-1).filter(j=>j>=0);sessionStorage.setItem('ogr',JSON.stringify(s))}});
+  $('#main').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;const [t,id]=b.dataset.del.split(':');const G=D.g;
+    const paths=t==='files'?G.fl.filter(f=>f.id===id).map(f=>f.path):t==='subjects'?G.fl.filter(f=>f.subject_id===id).map(f=>f.path):t==='groups'?G.fl.filter(f=>f.group_id===id).map(f=>f.path):[];
+    ask(t==='groups'?'このグループと中身をすべて削除します。元に戻せません。':'これを削除しますか?',async()=>{if(await run(()=>SB.from(t).delete().eq('id',id).select('id'),'削除しました')){const p=paths.filter(Boolean);if(p.length)await SB.storage.from('files').remove(p);go('groups')}})}};
+
+/* ----- 実績・肩書 ----- */
+const STATS=[['setsMade','単語帳を作った数'],['flips','カードをめくった回数'],['known','「覚えた」を押した回数'],['timerClear','時間モードで1周した回数'],['uploads','PDFを追加した数'],['events','予定を追加した数'],['groups','参加したグループ数'],['total_sec','累計勉強時間(秒)'],['streak','連続勉強日数']];
+V.defs=async()=>{const [a,t]=await Promise.all([SB.from('achievements').select('*').order('sort'),SB.from('titles').select('*').order('sort')]);if(a.error)throw a.error;if(t.error)throw t.error;D.a=a.data;D.t=t.data;
+  view(`<div class="row"><h2 class="grow">実績</h2><button class="btn pri" id="na">追加</button></div><div class="wrap"><table><thead><tr><th>ID</th><th>名前</th><th>説明</th><th>条件</th><th>しきい値</th><th>並び</th><th></th></tr></thead><tbody>${a.data.map(x=>`<tr data-a="${esc(x.id)}"><td class="small">${esc(x.id)}</td><td>${esc(x.name)}</td><td class="small">${esc(x.descr)}</td><td class="small">${esc((STATS.find(s=>s[0]===x.stat)||[0,x.stat])[1])}</td><td>${+x.threshold}</td><td>${x.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-ea="${esc(x.id)}">編集</button> <button class="btn sm bad" data-da="${esc(x.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>
+  <div class="row" style="margin-top:20px"><h2 class="grow">肩書</h2><button class="btn pri" id="nt2">追加</button></div><div class="wrap"><table><thead><tr><th>ID</th><th>前半</th><th>後半</th><th>必要な実績</th><th>並び</th><th></th></tr></thead><tbody>${t.data.map(x=>`<tr><td class="small">${esc(x.id)}</td><td>${esc(x.front)}</td><td>${esc(x.back)}</td><td class="small">${esc(x.need_ach?((a.data.find(y=>y.id===x.need_ach)||{}).name||x.need_ach):'なし(最初から使える)')}</td><td>${x.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-et="${esc(x.id)}">編集</button> <button class="btn sm bad" data-dt="${esc(x.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>`);
+  $('#na').onclick=()=>achDlg();$('#nt2').onclick=()=>titleDlg();
+  $('#main').onclick=e=>{const b=e.target.closest('button[data-ea],[data-da],[data-et],[data-dt]');if(!b)return;
+    if(b.dataset.ea)achDlg(D.a.find(x=>x.id===b.dataset.ea));else if(b.dataset.et)titleDlg(D.t.find(x=>x.id===b.dataset.et));
+    else if(b.dataset.da)ask('この実績を削除しますか?(この実績が必要な肩書は、誰でも使える肩書になります)',async()=>{if(await run(()=>SB.from('achievements').delete().eq('id',b.dataset.da).select('id'),'削除しました'))go('defs')});
+    else ask('この肩書を削除しますか?(使っている人は「見習い学習者」に戻ります)',async()=>{if(await run(()=>SB.from('titles').delete().eq('id',b.dataset.dt).select('id'),'削除しました'))go('defs')})}};
+function achDlg(x){const nw=!x;dlg(`<h3 style="margin-top:0">${nw?'実績を追加':'実績を編集'}</h3><div class="row" style="flex-direction:column;align-items:stretch">
+  ${nw?'<input class="in" id="ai" placeholder="ID(半角英数字とアンダーバー 例: pdf10)" maxlength="30">':`<div class="mut small">ID: ${esc(x.id)}</div>`}<input class="in" id="an" placeholder="名前" maxlength="30" value="${esc(x?x.name:'')}"><input class="in" id="ad" placeholder="説明(例: PDFを10個追加する)" maxlength="60" value="${esc(x?x.descr:'')}">
+  <select class="in" id="as">${STATS.map(s=>`<option value="${s[0]}" ${x&&x.stat===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select><div class="row"><input class="in grow" id="at" type="number" min="1" placeholder="しきい値" value="${x?+x.threshold:1}"><input class="in grow" id="ao" type="number" placeholder="並び順" value="${x?x.sort:(D.a.length+1)}"></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-x>やめる</button><button class="btn pri" data-y>保存</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{
+    const id=nw?$('#ai').value.trim():x.id,name=$('#an').value.trim();if(!/^[a-z0-9_]{2,30}$/.test(id)){toast('IDは半角の英数字とアンダーバーにしてください');return}if(!name){toast('名前を入力してください');return}
+    if(nw&&D.a.some(y=>y.id===id)){toast('そのIDはすでにあります');return}
+    const row={name,descr:$('#ad').value.trim(),stat:$('#as').value,threshold:+$('#at').value||1,sort:+$('#ao').value||0};closeDlg();
+    if(await run(()=>nw?SB.from('achievements').insert({id,...row}):SB.from('achievements').update(row).eq('id',id).select('id'),'保存しました'))go('defs')}})}
+function titleDlg(x){const nw=!x;dlg(`<h3 style="margin-top:0">${nw?'肩書を追加':'肩書を編集'}</h3><div class="row" style="flex-direction:column;align-items:stretch">
+  ${nw?'<input class="in" id="ti" placeholder="ID(半角英数字とアンダーバー 例: t11)" maxlength="30">':`<div class="mut small">ID: ${esc(x.id)}</div>`}<div class="row"><input class="in grow" id="tf" placeholder="前半(例: めくりの)" maxlength="12" value="${esc(x?x.front:'')}"><input class="in grow" id="tb" placeholder="後半(例: 名人)" maxlength="12" value="${esc(x?x.back:'')}"></div>
+  <select class="in" id="tr"><option value="">なし(最初から使える)</option>${D.a.map(a=>`<option value="${esc(a.id)}" ${x&&x.need_ach===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select><input class="in" id="to" type="number" placeholder="並び順" value="${x?x.sort:(D.t.length)}"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-x>やめる</button><button class="btn pri" data-y>保存</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{
+    const id=nw?$('#ti').value.trim():x.id,front=$('#tf').value.trim(),back=$('#tb').value.trim(),name=front+back;if(!/^[a-z0-9_]{2,30}$/.test(id)){toast('IDは半角の英数字とアンダーバーにしてください');return}if(!front||!back){toast('前半と後半を入力してください');return}
+    if(nw&&D.t.some(y=>y.id===id)){toast('そのIDはすでにあります');return}
+    const row={name,front,back,need_ach:$('#tr').value||null,sort:+$('#to').value||0};closeDlg();
+    if(await run(()=>nw?SB.from('titles').insert({id,...row}):SB.from('titles').update(row).eq('id',id).select('id'),'保存しました'))go('defs')}})}
+
+/* ----- 設定 ----- */
+V.set=async()=>{const r=await SB.from('app_settings').select('key,value');const cap=+((r.data||[]).find(x=>x.key==='user_cap_mb')||{value:100}).value;
+  view(`<h2>設定</h2><div class="card"><b>1人あたりのPDF保存上限</b><p class="mut small">Supabaseの無料枠は全体で1GBです。人数に合わせて調整してください(例: 10人なら100MB)。</p><div class="row"><input class="in" id="cap" type="number" min="1" style="max-width:160px" value="${cap}"><span>MB</span><button class="btn pri" id="sc">保存</button></div></div>`);
+  $('#sc').onclick=async()=>{const v=Math.max(1,Math.round(+$('#cap').value||0));const u=await SB.from('app_settings').update({value:String(v)}).eq('key','user_cap_mb').select('key');
+    if(u.error){toast(errT(u.error));return}if(!u.data.length){const i=await SB.from('app_settings').insert({key:'user_cap_mb',value:String(v)});if(i.error){toast(errT(i.error));return}}toast('保存しました')}};
+boot();
+})();
+</script></body></html>
