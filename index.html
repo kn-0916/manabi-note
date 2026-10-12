@@ -29,14 +29,16 @@ button.zc:active{transform:scale(.96)}
 .zc .zm{position:absolute;top:4px;left:4px;color:var(--rc)}
 .zc.tz span{font-size:13px;font-weight:700;overflow-wrap:anywhere}
 .pfb{display:grid;place-items:center;width:100%;height:100%;max-width:64px;max-height:64px;aspect-ratio:1;border-radius:50%;color:#fff;font-weight:700;font-size:22px}
-.petlayer{position:fixed;left:0;right:0;bottom:calc(8px + env(safe-area-inset-bottom,0px));height:68px;pointer-events:none;z-index:3;overflow:hidden}
-.pet-w{position:absolute;left:0;bottom:0;width:60px;height:60px;animation:petwalk 28s linear infinite;will-change:transform}
+.petlayer{position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:0;overflow:hidden}
+main{position:relative;z-index:1}
+.hdr{position:relative;z-index:2}
+.rkb{font-size:11px;font-weight:700;margin-left:6px}
+.pet-w{position:absolute;left:0;top:0;width:60px;height:60px;will-change:transform}
 .pet-i{width:100%;height:100%;animation:petbob .45s ease-in-out infinite alternate}
 @keyframes petbob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
-@keyframes petwalk{0%{transform:translateX(8px) scaleX(1)}48%{transform:translateX(calc(100vw - 68px)) scaleX(1)}50%{transform:translateX(calc(100vw - 68px)) scaleX(-1)}98%{transform:translateX(8px) scaleX(-1)}100%{transform:translateX(8px) scaleX(1)}}
 .pet-peek{position:absolute;bottom:0;width:84px;height:84px;transform:translateY(108%);animation:petpeek 13s ease-in-out infinite;pointer-events:none;z-index:1}
 @keyframes petpeek{0%,58%{transform:translateY(108%)}66%,82%{transform:translateY(6%)}90%,100%{transform:translateY(108%)}}
-@media (prefers-reduced-motion:reduce){.pet-w,.pet-i,.pet-peek{animation:none}.pet-peek{transform:translateY(20%)}}
+@media (prefers-reduced-motion:reduce){.pet-i,.pet-peek{animation:none}.pet-peek{transform:translateY(20%)}}
 .gres{position:fixed;inset:0;z-index:70;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px 16px;opacity:0;transition:opacity .3s var(--ease);overflow:auto}
 .gres.in{opacity:1}
 .gcards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:min(640px,100%)}
@@ -860,7 +862,7 @@ V.cal=()=>{if(S.mode==='group'&&!S.myGroup)return`<div class="view">${sub('カ�
   return`<div class="view">${sub(S.mode==='group'?esc(S.groups[S.myGroup].name)+'のカレンダー':'カレンダー','<button class="btn primary sm" data-act="calAdd">'+svg('plus',16)+'予定を追加</button>')}
   <div class="row"><button class="iconbtn" data-act="calMove" data-d="-1" aria-label="前の月">${svg('left')}</button><h3 class="grow" style="text-align:center;font-size:18px">${CAL.y}年${CAL.m+1}月</h3><button class="iconbtn" data-act="calMove" data-d="1" aria-label="次の月">${svg('right')}</button></div>
   <div class="cal">${['日','月','火','水','木','金','土'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
-  <div><div class="lbl" style="margin-bottom:8px">${sd[1]}月${sd[2]}日の予定</div><div class="list">${list.length?list.map(e=>`<div class="item"><div class="grow"><div class="t">${e.time?`<span class="clock">${e.time}</span> `:''}${esc(e.title)}</div><div class="small muted">${e.notify!=='none'?'通知 '+({'0':'時刻ちょうど','10':'10分前','60':'1時間前','1440':'1日前'}[e.notify]):'通知なし'}${byTag(e)}</div></div>${canDel(e)?`<button class="iconbtn" data-act="calDel" data-id="${e.id}" aria-label="予定を削除">${svg('trash',18)}</button>`:''}</div>`).join(''):'<div class="empty" style="padding:14px">この日の予定はありません。</div>'}</div></div></div>`};
+  <div><div class="lbl" style="margin-bottom:8px">${sd[1]}月${sd[2]}日の予定</div><div class="list">${list.length?list.map(e=>`<div class="item"><div class="grow"><div class="t">${e.time?`<span class="clock">${e.time}</span> `:''}${esc(e.title)}</div><div class="small muted">${e.notify!=='none'?'通知 '+({'0':'時刻ちょうど','10':'10分前','60':'1時間前','1440':'1日前'}[e.notify]):'通知なし'}${byTag(e)}</div></div>${S.mode!=='group'&&S.myGroups.length?`<button class="iconbtn" data-act="calShare" data-id="${e.id}" aria-label="グループに共有">${svg('group',18)}</button>`:''}${canDel(e)?`<button class="iconbtn" data-act="calDel" data-id="${e.id}" aria-label="予定を削除">${svg('trash',18)}</button>`:''}</div>`).join(''):'<div class="empty" style="padding:14px">この日の予定はありません。</div>'}</div></div></div>`};
 function notifyTick(){const now=Date.now();['private'].concat(S.myGroups).forEach(k=>{scope(k).cal.forEach(e=>{if(e.notify==='none'||S.fired[e.id])return;const t=new Date(e.date+'T'+(e.time||'09:00')).getTime()-(+e.notify)*60000;
   if(now>=t){S.fired[e.id]=1;save();toast('予定: '+e.title);try{if('Notification' in window&&Notification.permission==='granted')new Notification(e.title,{body:e.date+' '+(e.time||'')})}catch(x){}}})})}
 setInterval(notifyTick,20000);
@@ -884,13 +886,14 @@ V.mypage=()=>{const u=S.user;const got=ACH.filter(a=>S.ach[a.id]);
   <div class="mp-nick"><h1>${esc(u.nick)}</h1><span class="muted">@${esc(u.uid)}</span></div>
   <div class="mp-rest"><div><h3>肩書</h3>${esc(titleName())}</div><div><h3>誕生日</h3>${esc(u.birth.replace(/^(\d+)-(\d+)-(\d+)$/,'$1年$2月$3日'))}</div><div><h3>総合勉強時間</h3>${fmtDur(totalSec())}</div>
   <button class="mplink" data-act="goTitles">肩書一覧<span class="mpl-r">${TITLES.filter(titleOk).length}/${TITLES.length}${svg('chev',16)}</span></button>
+  <button class="mplink" data-act="goPets">ペット<span class="mpl-r">${PETS.filter(p=>gm().pets[p.id]).length}/${PETS.length}${svg('chev',16)}</span></button>
   <button class="mplink" data-act="goAchs">実績一覧<span class="mpl-r">${got.length}/${ACH.length}${svg('chev',16)}</span></button></div></div>`};
 function viewMi(){const uid=view.uid;if(!uid||!S.myGroup||!S.groups[S.myGroup])return null;const m=memberInfo(S.myGroup,uid);return m.self?null:m}
 V.titles=()=>{const mi=viewMi(),cur=mi?mi.title:titleName();
   const sec=(part,label)=>{const sel=mi?null:(part==='f'?tfOf():tbOf());
     const cells=TITLES.map(x=>{const ok=mi?(!x.g&&(!x.need||mi.ach.includes(x.need))):titleOk(x);
       if(!ok)return`<div class="item blank" aria-hidden="true"></div>`;const on=!mi&&x.id===titleById(sel).id,txt=part==='f'?x.f:x.b;
-      return mi?`<div class="item tcell"><span class="t">${esc(txt)}</span></div>`:`<button class="item tcell ${on?'cur':''}" data-act="titleSet" data-part="${part}" data-id="${x.id}" aria-pressed="${on}"><span class="t">${esc(txt)}</span>${on?svg('check',18):''}</button>`}).join('');
+      return mi?`<div class="item tcell"><span class="t">${esc(txt)}</span></div>`:`<button class="item tcell ${on?'cur':''}" data-act="titleSet" data-part="${part}" data-id="${x.id}" aria-pressed="${on}"><span class="t">${esc(txt)}</span>${x.g?`<span class="rkb" style="color:${rcol(x.g)}">${esc(x.g)}</span>`:''}${on?svg('check',18):''}</button>`}).join('');
     return`<div class="mp-sec"><h3 style="margin:18px 4px 8px">${label}</h3><div class="list">${cells}</div></div>`};
   return`<div class="view">${sub('肩書一覧')}<div class="t" style="text-align:center;font-size:20px;font-weight:700;margin:14px 0">${esc(cur)}</div>${sec('f','前半')}${sec('b','後半')}</div>`};
 V.achs=()=>{const mi=viewMi();
@@ -1468,17 +1471,25 @@ async function loginBonus(){try{const r=await SB.rpc('claim_login');if(r.error||
 function petSync(){let L=$('#petlayer');const p=petById(gm().main);const show=AUTH==='in'&&S.user&&S.user.done&&p&&(view.name==='home'||view.name==='time')&&!$('#focus');
   if(!show){if(L)L.remove();return}
   const sig=p.id+'|'+p.img;if(L&&L.dataset.sig===sig)return;if(L)L.remove();
-  L=document.createElement('div');L.id='petlayer';L.className='petlayer';L.dataset.sig=sig;L.setAttribute('aria-hidden','true');L.innerHTML=`<div class="pet-w"><div class="pet-i">${pimg(p)}</div></div>`;document.body.appendChild(L)}
+  L=document.createElement('div');L.id='petlayer';L.className='petlayer';L.dataset.sig=sig;L.setAttribute('aria-hidden','true');L.innerHTML=`<div class="pet-w"><div class="pet-i">${pimg(p)}</div></div>`;document.body.appendChild(L);petWalk(L)}
+function petWalk(L){const w=L.querySelector('.pet-w');if(!w)return;
+  if(reduceMotion()){w.style.top=(innerHeight*.6)+'px';w.style.transform='translateX('+(innerWidth*.5)+'px)';return}
+  const go=()=>{if(!L.isConnected)return;const W=innerWidth,H=innerHeight,dir=Math.random()<.5?1:-1,y=Math.random()*Math.max(10,H-130)+20,x0=dir>0?-70:W+10,x1=dir>0?W+10:-70,dur=(W+80)/(26+Math.random()*24)*1000;
+    w.style.top=y+'px';const a=w.animate([{transform:`translateX(${x0}px) scaleX(${dir})`},{transform:`translateX(${x1}px) scaleX(${dir})`}],{duration:dur,easing:'linear',fill:'forwards'});a.onfinish=()=>setTimeout(go,900+Math.random()*3500)};go()}
 function petPeek(el){const p=petById(gm().main);if(!p)return;const d=document.createElement('div');d.className='pet-peek';d.innerHTML=pimg(p);const place=()=>{d.style.left=(8+Math.random()*Math.max(10,innerWidth-100))+'px'};place();d.addEventListener('animationiteration',place);el.appendChild(d)}
-V.gacha=()=>{const m=gm(),tab=view.tab==='zukan'?'zukan':'pull',rt=rates();
-  const tabs=`<div class="chips"><button class="chip ${tab==='pull'?'on':''}" data-act="gTab" data-tab="pull" aria-pressed="${tab==='pull'}"><span>ガチャ</span></button><button class="chip ${tab==='zukan'?'on':''}" data-act="gTab" data-tab="zukan" aria-pressed="${tab==='zukan'}"><span>図鑑</span></button></div>`;
+V.gacha=()=>{const m=gm(),tab=view.tab==='zukan'||view.tab==='own'?view.tab:'pull',rt=rates();
+  const pc=p=>`<button class="zc ${m.main===p.id?'cur':''}" style="--rc:${rcol(p.rank)}" data-act="petSet" data-id="${esc(p.id)}" aria-pressed="${m.main===p.id}"><span class="pi">${pimg(p)}</span><span class="zn">${esc(p.name)}</span>${m.pets[p.id]>1?`<span class="zx">×${m.pets[p.id]}</span>`:''}${m.main===p.id?`<span class="zm">${svg('check',16)}</span>`:''}</button>`;
+  const tabs=`<div class="chips"><button class="chip ${tab==='pull'?'on':''}" data-act="gTab" data-tab="pull" aria-pressed="${tab==='pull'}"><span>ガチャ</span></button><button class="chip ${tab==='own'?'on':''}" data-act="gTab" data-tab="own" aria-pressed="${tab==='own'}"><span>持ち物</span></button><button class="chip ${tab==='zukan'?'on':''}" data-act="gTab" data-tab="zukan" aria-pressed="${tab==='zukan'}"><span>図鑑</span></button></div>`;
   if(tab==='pull'){const c1=gcost(1),c10=gcost(10);
     return`<div class="view">${sub('ガチャ')}${tabs}<div class="coinbar"><span class="cn">${svg('coin',26)}</span><b>${m.coins}</b></div>
     <div class="gbtns"><button class="btn primary gb ${m.coins<c1?'low':''}" data-act="gachaPull" data-n="1">1連<small>${c1}コイン</small></button><button class="btn primary gb ${m.coins<c10?'low':''}" data-act="gachaPull" data-n="10">10連<small>${c10}コイン</small></button></div>
     <div class="rkrow">${rt.filter(r=>r.pct>0).map(r=>`<span class="rk" style="--rc:${rcol(r.id)}"><b>${esc(r.id)}</b>${Math.round(r.pct*10)/10}%</span>`).join('')}</div></div>`}
+  if(tab==='own'){const op=PETS.filter(p=>m.pets[p.id]),ot=TITLES.filter(t=>t.g&&m.own.includes(t.id));
+    return`<div class="view">${sub('ガチャ')}${tabs}<section class="zk" style="--rc:var(--accent)"><div class="zk-h"><b>ペット</b><span class="grow"></span><span class="muted">${op.length}/${PETS.length}</span></div>${op.length?`<div class="zgrid">${op.map(pc).join('')}</div>`:'<div class="empty">まだいません</div>'}</section>
+    <section class="zk" style="--rc:var(--accent)"><div class="zk-h"><b>肩書</b><span class="grow"></span><span class="muted">${ot.length}/${TITLES.filter(t=>t.g).length}</span></div>${ot.length?`<div class="zgrid">${ot.map(t=>`<div class="zc tz" style="--rc:${rcol(t.g)}"><span>${esc(t.n)}</span><span class="zx">${esc(t.g)}</span></div>`).join('')}</div>`:'<div class="empty">まだありません</div>'}</section></div>`}
   const secs=rt.map(r=>{const ps=PETS.filter(p=>p.rank===r.id),ts=TITLES.filter(t=>t.g===r.id),n=ps.length+ts.length;if(!n)return'';
     const got=ps.filter(p=>m.pets[p.id]).length+ts.filter(t=>m.own.includes(t.id)).length;
-    const cells=ps.map(p=>m.pets[p.id]?`<button class="zc ${m.main===p.id?'cur':''}" data-act="petSet" data-id="${esc(p.id)}" aria-pressed="${m.main===p.id}"><span class="pi">${pimg(p)}</span><span class="zn">${esc(p.name)}</span>${m.pets[p.id]>1?`<span class="zx">×${m.pets[p.id]}</span>`:''}${m.main===p.id?`<span class="zm">${svg('check',16)}</span>`:''}</button>`:`<div class="zc lock" aria-hidden="true">?</div>`).join('')
+    const cells=ps.map(p=>m.pets[p.id]?pc(p):`<div class="zc lock" aria-hidden="true">?</div>`).join('')
       +ts.map(t=>m.own.includes(t.id)?`<div class="zc tz"><span>${esc(t.n)}</span></div>`:`<div class="zc lock" aria-hidden="true">?</div>`).join('');
     return`<section class="zk" style="--rc:${rcol(r.id)}"><div class="zk-h"><b>${esc(r.id)}</b><span>${esc(r.name)}</span><span class="grow"></span><span class="muted">${got}/${n}</span></div><div class="zgrid">${cells}</div></section>`}).join('');
   return`<div class="view">${sub('ガチャ')}${tabs}${secs||'<div class="empty">準備中です</div>'}</div>`};
@@ -1488,6 +1499,12 @@ function showGachaRes(items){const old=$('#gres');if(old)old.remove();const el=d
   <div class="gres-b"><button class="btn" data-act="gresClose">閉じる</button><button class="btn primary" data-act="gachaPull" data-n="${items.length}">もう一度</button></div>`;
   document.body.appendChild(el);void el.offsetWidth;el.classList.add('in')}
 A.gresClose=()=>{const el=$('#gres');if(!el)return;el.classList.remove('in');setTimeout(()=>el.remove(),300)};
+async function calShareTo(id,code){const e=sc().cal.find(x=>x.id===id),g=S.groups[code];if(!e||!g)return;
+  const ok=await gdo(()=>SB.from('events').insert({group_id:g.id,by:ME.id,title:e.title,date:e.date,time:e.time||'',notify:e.notify||'none'}));if(ok){closeSheet();toast(g.name+'に共有しました')}}
+A.calShare=t=>{const id=t.dataset.id;if(S.myGroups.length===1){calShareTo(id,S.myGroups[0]);return}
+  sheet(`<h3>共有するグループ</h3><div class="list">${S.myGroups.map(c=>`<button class="item tcell" data-act="calShareTo" data-id="${esc(id)}" data-code="${esc(c)}"><span class="t">${esc(S.groups[c].name)}</span></button>`).join('')}</div>`)};
+A.calShareTo=t=>calShareTo(t.dataset.id,t.dataset.code);
+A.goPets=()=>go('gacha',{tab:'own'});
 A.gTab=t=>{view.tab=t.dataset.tab;render()};
 A.petSet=t=>{const id=t.dataset.id,m=gm();if(!m.pets[id])return;m.main=id;save();render();petSync();if(SB&&ME)SB.from('profiles').update({pet_main:id}).eq('id',ME.id).then(()=>{})};
 A.gachaPull=async t=>{const n=+t.dataset.n===10?10:1,m=gm();if(gBusy)return;if(m.coins<gcost(n)){toast('コインが足りません');return}
