@@ -54,7 +54,7 @@ const fmtS=s=>{s=+s||0;const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return
 const fmtD=t=>{const d=new Date(t);return isNaN(d)?'':d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()};
 let SB=null,ME=null,tab='home';const D={};
 let tT=0;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),2600)}
-const errT=e=>{const m=String((e&&e.message)||e||'');return /admin only|row-level|policy/i.test(m)?'権限がありません':/duplicate|23505/i.test(m)?'同じIDがすでにあります':/fetch|network/i.test(m)?'通信できませんでした':'できませんでした: '+m.slice(0,80)}
+const errT=e=>{const m=String((e&&e.message)||e||'');return /admin only|row-level|policy/i.test(m)?'権限がありません':/duplicate|23505/i.test(m)?'同じIDがすでにあります':/foreign key|23503/i.test(m)?'使われているため削除できません':/fetch|network/i.test(m)?'通信できませんでした':'できませんでした: '+m.slice(0,80)}
 function dlg(html,bind){const d=$('#dlg');d.innerHTML=html;if(!d.open)d.showModal();if(bind)bind(d);return d}
 const closeDlg=()=>{const d=$('#dlg');if(d.open)d.close()};
 function ask(msg,yes,label){dlg(`<h3 style="margin-top:0">${esc(msg)}</h3><div class="row" style="justify-content:flex-end"><button class="btn" data-x>やめる</button><button class="btn bad" data-y>${esc(label||'削除する')}</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{closeDlg();await yes()}})}
@@ -73,7 +73,7 @@ async function boot(){
   const r=await SB.rpc('admin_stats');
   if(r.error){const net=/fetch|network/i.test(r.error.message||'');view(`<div class="center"><div><p>${net?'通信できませんでした':'このアカウントには管理者の権限がありません'}</p><p class="mut small">${esc(ME.email||'')}</p></div></div>`);return}
   D.stats=r.data;$('#nav').hidden=false;drawNav();go(tab)}
-const TABS=[['home','概要'],['news','お知らせ'],['users','利用者'],['groups','グループ'],['defs','実績・肩書'],['set','設定']];
+const TABS=[['home','概要'],['news','お知らせ'],['users','利用者'],['groups','グループ'],['defs','実績・肩書'],['gacha','ガチャ'],['set','設定']];
 function drawNav(){const n=$('#nav');n.innerHTML=TABS.map(t=>`<button data-t="${t[0]}" class="${t[0]===tab?'on':''}">${t[1]}</button>`).join('');n.onclick=e=>{const b=e.target.closest('[data-t]');if(b)go(b.dataset.t)}}
 async function go(t){tab=t;drawNav();view('<p class="mut">読み込み中…</p>');try{await V[t]()}catch(e){view(`<p>${esc(errT(e))}</p>`)}window.scrollTo(0,0)}
 const V={};
@@ -159,9 +159,9 @@ V.groups=async()=>{const [g,m,st,sj,fl,ev,pr]=await Promise.all([SB.from('groups
 
 /* ----- 実績・肩書 ----- */
 const STATS=[['setsMade','単語帳を作った数'],['flips','カードをめくった回数'],['known','「覚えた」を押した回数'],['timerClear','時間モードで1周した回数'],['uploads','PDFを追加した数'],['events','予定を追加した数'],['groups','参加したグループ数'],['total_sec','累計勉強時間(秒)'],['streak','連続勉強日数']];
-V.defs=async()=>{const [a,t]=await Promise.all([SB.from('achievements').select('*').order('sort'),SB.from('titles').select('*').order('sort')]);if(a.error)throw a.error;if(t.error)throw t.error;D.a=a.data;D.t=t.data;
+V.defs=async()=>{const [a,t,rk]=await Promise.all([SB.from('achievements').select('*').order('sort'),SB.from('titles').select('*').order('sort'),SB.from('gacha_ranks').select('*').order('sort')]);if(a.error)throw a.error;if(t.error)throw t.error;D.a=a.data;D.t=t.data;D.r=rk.error?[]:rk.data;
   view(`<div class="row"><h2 class="grow">実績</h2><button class="btn pri" id="na">追加</button></div><div class="wrap"><table><thead><tr><th>ID</th><th>名前</th><th>説明</th><th>条件</th><th>しきい値</th><th>並び</th><th></th></tr></thead><tbody>${a.data.map(x=>`<tr data-a="${esc(x.id)}"><td class="small">${esc(x.id)}</td><td>${esc(x.name)}</td><td class="small">${esc(x.descr)}</td><td class="small">${esc((STATS.find(s=>s[0]===x.stat)||[0,x.stat])[1])}</td><td>${+x.threshold}</td><td>${x.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-ea="${esc(x.id)}">編集</button> <button class="btn sm bad" data-da="${esc(x.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>
-  <div class="row" style="margin-top:20px"><h2 class="grow">肩書</h2><button class="btn pri" id="nt2">追加</button></div><div class="wrap"><table><thead><tr><th>ID</th><th>前半</th><th>後半</th><th>必要な実績</th><th>並び</th><th></th></tr></thead><tbody>${t.data.map(x=>`<tr><td class="small">${esc(x.id)}</td><td>${esc(x.front)}</td><td>${esc(x.back)}</td><td class="small">${esc(x.need_ach?((a.data.find(y=>y.id===x.need_ach)||{}).name||x.need_ach):'なし(最初から使える)')}</td><td>${x.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-et="${esc(x.id)}">編集</button> <button class="btn sm bad" data-dt="${esc(x.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>`);
+  <div class="row" style="margin-top:20px"><h2 class="grow">肩書</h2><button class="btn pri" id="nt2">追加</button></div><div class="wrap"><table><thead><tr><th>ID</th><th>前半</th><th>後半</th><th>必要な実績</th><th>ガチャ</th><th>並び</th><th></th></tr></thead><tbody>${t.data.map(x=>`<tr><td class="small">${esc(x.id)}</td><td>${esc(x.front)}</td><td>${esc(x.back)}</td><td class="small">${esc(x.need_ach?((a.data.find(y=>y.id===x.need_ach)||{}).name||x.need_ach):'なし(最初から使える)')}</td><td class="small">${esc(x.gacha_rank||'')}</td><td>${x.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-et="${esc(x.id)}">編集</button> <button class="btn sm bad" data-dt="${esc(x.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>`);
   $('#na').onclick=()=>achDlg();$('#nt2').onclick=()=>titleDlg();
   $('#main').onclick=e=>{const b=e.target.closest('button[data-ea],[data-da],[data-et],[data-dt]');if(!b)return;
     if(b.dataset.ea)achDlg(D.a.find(x=>x.id===b.dataset.ea));else if(b.dataset.et)titleDlg(D.t.find(x=>x.id===b.dataset.et));
@@ -177,18 +177,61 @@ function achDlg(x){const nw=!x;dlg(`<h3 style="margin-top:0">${nw?'実績を追�
     if(await run(()=>nw?SB.from('achievements').insert({id,...row}):SB.from('achievements').update(row).eq('id',id).select('id'),'保存しました'))go('defs')}})}
 function titleDlg(x){const nw=!x;dlg(`<h3 style="margin-top:0">${nw?'肩書を追加':'肩書を編集'}</h3><div class="row" style="flex-direction:column;align-items:stretch">
   ${nw?'<input class="in" id="ti" placeholder="ID(半角英数字とアンダーバー 例: t11)" maxlength="30">':`<div class="mut small">ID: ${esc(x.id)}</div>`}<div class="row"><input class="in grow" id="tf" placeholder="前半(例: めくりの)" maxlength="12" value="${esc(x?x.front:'')}"><input class="in grow" id="tb" placeholder="後半(例: 名人)" maxlength="12" value="${esc(x?x.back:'')}"></div>
-  <select class="in" id="tr"><option value="">なし(最初から使える)</option>${D.a.map(a=>`<option value="${esc(a.id)}" ${x&&x.need_ach===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select><input class="in" id="to" type="number" placeholder="並び順" value="${x?x.sort:(D.t.length)}"></div>
+  <select class="in" id="tr"><option value="">なし(最初から使える)</option>${D.a.map(a=>`<option value="${esc(a.id)}" ${x&&x.need_ach===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select><input class="in" id="to" type="number" placeholder="並び順" value="${x?x.sort:(D.t.length)}">
+  ${D.r&&D.r.length?`<div class="row"><select class="in grow" id="tg"><option value="">ガチャに入れない</option>${D.r.map(r=>`<option value="${esc(r.id)}" ${x&&x.gacha_rank===r.id?'selected':''}>ガチャ: ${esc(r.id)} ${esc(r.name)}</option>`).join('')}</select><input class="in" id="tw" type="number" min="1" style="max-width:110px" placeholder="重み" value="${x&&x.weight?x.weight:1}"></div>`:''}</div>
   <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-x>やめる</button><button class="btn pri" data-y>保存</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{
     const id=nw?$('#ti').value.trim():x.id,front=$('#tf').value.trim(),back=$('#tb').value.trim(),name=front+back;if(!/^[a-z0-9_]{2,30}$/.test(id)){toast('IDは半角の英数字とアンダーバーにしてください');return}if(!front||!back){toast('前半と後半を入力してください');return}
     if(nw&&D.t.some(y=>y.id===id)){toast('そのIDはすでにあります');return}
-    const row={name,front,back,need_ach:$('#tr').value||null,sort:+$('#to').value||0};closeDlg();
+    const row={name,front,back,need_ach:$('#tr').value||null,sort:+$('#to').value||0};if($('#tg')){row.gacha_rank=$('#tg').value||null;row.weight=Math.max(1,Math.round(+$('#tw').value||1))}closeDlg();
     if(await run(()=>nw?SB.from('titles').insert({id,...row}):SB.from('titles').update(row).eq('id',id).select('id'),'保存しました'))go('defs')}})}
 
+/* ----- ガチャ ----- */
+const petUrl=f=>CFG.url+'/storage/v1/object/public/pets/'+encodeURIComponent(f);
+async function shrinkPet(file){const url=URL.createObjectURL(file);const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});URL.revokeObjectURL(url);
+  const k=Math.min(1,512/Math.max(im.naturalWidth,im.naturalHeight));const w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);
+  return await new Promise(r=>cv.toBlob(b=>r(b&&b.type==='image/webp'?b:null),'image/webp',.9)).then(b=>b||new Promise(r=>cv.toBlob(r,'image/png')))}
+V.gacha=async()=>{const [rk,pt,tt]=await Promise.all([SB.from('gacha_ranks').select('*').order('sort'),SB.from('pets').select('*').order('sort'),SB.from('titles').select('id,name,gacha_rank')]);
+  if(rk.error)throw rk.error;if(pt.error)throw pt.error;D.r=rk.data;D.p=pt.data;const ti=tt.error?[]:tt.data;
+  const has=r=>D.p.some(p=>p.active&&p.rank===r.id)||ti.some(t=>t.gacha_rank===r.id);const L=D.r.filter(r=>+r.rate>0&&has(r));const tot=L.reduce((a,r)=>a+(+r.rate),0)||1;
+  view(`<div class="row"><h2 class="grow">ランク</h2><button class="btn pri" id="nr">追加</button></div><div class="wrap"><table><thead><tr><th>ID</th><th>名前</th><th>出やすさ</th><th>実際の確率</th><th>ペット</th><th>肩書</th><th>並び</th><th></th></tr></thead><tbody>${D.r.map(r=>`<tr><td>${esc(r.id)}</td><td>${esc(r.name)}</td><td>${+r.rate}</td><td>${L.includes(r)?(Math.round(+r.rate/tot*1000)/10)+'%':'<span class="mut">出ない</span>'}</td><td>${D.p.filter(p=>p.rank===r.id&&p.active).length}</td><td>${ti.filter(t=>t.gacha_rank===r.id).length}</td><td>${r.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-er="${esc(r.id)}">編集</button> <button class="btn sm bad" data-dr="${esc(r.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>
+  <div class="row" style="margin-top:20px"><h2 class="grow">ペット</h2><button class="btn pri" id="np">追加</button></div><div class="wrap"><table><thead><tr><th>画像</th><th>名前</th><th>ランク</th><th>重み</th><th>状態</th><th>並び</th><th></th></tr></thead><tbody>${D.p.map(p=>`<tr><td>${p.img?`<img src="${esc(petUrl(p.img))}" alt="" style="width:44px;height:44px;object-fit:contain;display:block">`:'<span class="mut small">なし</span>'}</td><td>${esc(p.name)}</td><td>${esc(p.rank)}</td><td>${p.weight}</td><td>${p.active?'<span class="tag good">有効</span>':'<span class="tag warn">停止中</span>'}</td><td>${p.sort}</td><td style="white-space:nowrap"><button class="btn sm" data-ep="${esc(p.id)}">編集</button> <button class="btn sm bad" data-dp="${esc(p.id)}">削除</button></td></tr>`).join('')}</tbody></table></div>`);
+  $('#nr').onclick=()=>rankDlg();$('#np').onclick=()=>petDlg();
+  $('#main').onclick=e=>{const b=e.target.closest('button[data-er],[data-dr],[data-ep],[data-dp]');if(!b)return;
+    if(b.dataset.er)rankDlg(D.r.find(x=>x.id===b.dataset.er));else if(b.dataset.ep)petDlg(D.p.find(x=>x.id===b.dataset.ep));
+    else if(b.dataset.dr)ask('このランクを削除しますか?(ペットがあるランクは削除できません)',async()=>{if(await run(()=>SB.from('gacha_ranks').delete().eq('id',b.dataset.dr).select('id'),'削除しました'))go('gacha')});
+    else{const p=D.p.find(x=>x.id===b.dataset.dp);ask('このペットを削除しますか?(持っている人の図鑑からも消えます)',async()=>{if(await run(()=>SB.from('pets').delete().eq('id',p.id).select('id'),'削除しました')){if(p.img)try{await SB.storage.from('pets').remove([p.img])}catch(e){}go('gacha')}})}}};
+function rankDlg(x){const nw=!x;dlg(`<h3 style="margin-top:0">${nw?'ランクを追加':'ランクを編集'}</h3><div class="row" style="flex-direction:column;align-items:stretch">
+  ${nw?'<input class="in" id="ri" placeholder="ID(半角英数字 例: UR)" maxlength="10">':`<div class="mut small">ID: ${esc(x.id)}</div>`}<input class="in" id="rn" placeholder="名前(例: ウルトラレア)" maxlength="16" value="${esc(x?x.name:'')}">
+  <div class="row"><input class="in grow" id="rr" type="number" min="0" step="0.1" placeholder="出やすさ" value="${x?+x.rate:10}"><input class="in grow" id="ro" type="number" placeholder="並び順" value="${x?x.sort:(D.r.length+1)}"></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-x>やめる</button><button class="btn pri" data-y>保存</button></div>`,d=>{d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{
+    const id=nw?$('#ri').value.trim():x.id,name=$('#rn').value.trim();if(!/^[A-Za-z0-9_]{1,10}$/.test(id)){toast('IDは半角の英数字にしてください');return}if(!name){toast('名前を入力してください');return}
+    if(nw&&D.r.some(y=>y.id===id)){toast('そのIDはすでにあります');return}
+    const row={name,rate:Math.max(0,+$('#rr').value||0),sort:+$('#ro').value||0};closeDlg();
+    if(await run(()=>nw?SB.from('gacha_ranks').insert({id,...row}):SB.from('gacha_ranks').update(row).eq('id',id).select('id'),'保存しました'))go('gacha')}})}
+function petDlg(x){const nw=!x;dlg(`<h3 style="margin-top:0">${nw?'ペットを追加':'ペットを編集'}</h3><div class="row" style="flex-direction:column;align-items:stretch">
+  ${nw?'<input class="in" id="pi" placeholder="ID(半角英数字とアンダーバー 例: cat01)" maxlength="30">':`<div class="mut small">ID: ${esc(x.id)}</div>`}<input class="in" id="pn" placeholder="名前" maxlength="16" value="${esc(x?x.name:'')}">
+  <select class="in" id="pr">${D.r.map(r=>`<option value="${esc(r.id)}" ${x&&x.rank===r.id?'selected':''}>${esc(r.id)} ${esc(r.name)}</option>`).join('')}</select>
+  <div class="row"><input class="in grow" id="pw" type="number" min="1" placeholder="重み" value="${x?x.weight:1}"><input class="in grow" id="po" type="number" placeholder="並び順" value="${x?x.sort:(D.p.length+1)}"></div>
+  <label class="row" style="gap:8px"><input type="checkbox" id="pa" ${!x||x.active?'checked':''}>ガチャに入れる</label>
+  <div class="row"><img id="pv" alt="" style="width:64px;height:64px;object-fit:contain;${x&&x.img?'':'display:none'}" ${x&&x.img?`src="${esc(petUrl(x.img))}"`:''}><input type="file" id="pf" accept="image/*"></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-x>やめる</button><button class="btn pri" data-y>保存</button></div>`,d=>{
+    d.querySelector('#pf').onchange=()=>{const f=d.querySelector('#pf').files[0];if(f){const v=d.querySelector('#pv');v.src=URL.createObjectURL(f);v.style.display=''}};
+    d.querySelector('[data-x]').onclick=closeDlg;d.querySelector('[data-y]').onclick=async()=>{
+    const id=nw?$('#pi').value.trim():x.id,name=$('#pn').value.trim();if(!/^[a-z0-9_]{2,30}$/.test(id)){toast('IDは半角の英数字とアンダーバーにしてください');return}if(!name){toast('名前を入力してください');return}
+    if(nw&&D.p.some(y=>y.id===id)){toast('そのIDはすでにあります');return}
+    const row={name,rank:$('#pr').value,weight:Math.max(1,Math.round(+$('#pw').value||1)),sort:+$('#po').value||0,active:$('#pa').checked};const f=$('#pf').files[0];closeDlg();
+    if(f){toast('画像をアップロードしています');try{const blob=await shrinkPet(f);const ext=blob.type==='image/png'?'png':'webp';const nmf=id+'-'+Date.now().toString(36)+'.'+ext;const up=await SB.storage.from('pets').upload(nmf,blob,{contentType:blob.type});if(up.error)throw up.error;
+        if(x&&x.img)try{await SB.storage.from('pets').remove([x.img])}catch(e){}row.img=nmf}catch(e){toast('画像をアップロードできませんでした');return}}
+    if(await run(()=>nw?SB.from('pets').insert({id,...row}):SB.from('pets').update(row).eq('id',id).select('id'),'保存しました'))go('gacha')}})}
+
 /* ----- 設定 ----- */
-V.set=async()=>{const r=await SB.from('app_settings').select('key,value');const cap=+((r.data||[]).find(x=>x.key==='user_cap_mb')||{value:100}).value;
-  view(`<h2>設定</h2><div class="card"><b>1人あたりのPDF保存上限</b><p class="mut small">Supabaseの無料枠は全体で1GBです。人数に合わせて調整してください(例: 10人なら100MB)。</p><div class="row"><input class="in" id="cap" type="number" min="1" style="max-width:160px" value="${cap}"><span>MB</span><button class="btn pri" id="sc">保存</button></div></div>`);
-  $('#sc').onclick=async()=>{const v=Math.max(1,Math.round(+$('#cap').value||0));const u=await SB.from('app_settings').update({value:String(v)}).eq('key','user_cap_mb').select('key');
-    if(u.error){toast(errT(u.error));return}if(!u.data.length){const i=await SB.from('app_settings').insert({key:'user_cap_mb',value:String(v)});if(i.error){toast(errT(i.error));return}}toast('保存しました')}};
+const SETK=[['gacha_cost1','1連に必要なコイン','3','number'],['gacha_cost10','10連に必要なコイン','30','number'],['ach_coin','実績を解除したときのコイン','2','number'],['login_bonus','ログインボーナス(何日目:コイン をカンマでつなぐ)','1:2,5:2,10:2','text'],['login_default','ほかの日のログインボーナス','1','number']];
+async function setKV(k,v){const u=await SB.from('app_settings').update({value:String(v)}).eq('key',k).select('key');if(u.error)throw u.error;if(!u.data.length){const i=await SB.from('app_settings').insert({key:k,value:String(v)});if(i.error)throw i.error}}
+V.set=async()=>{const r=await SB.from('app_settings').select('key,value');const get=(k,d)=>((r.data||[]).find(x=>x.key===k)||{value:d}).value;const cap=+get('user_cap_mb',100);
+  view(`<h2>設定</h2><div class="card"><b>1人あたりのPDF保存上限</b><p class="mut small">Supabaseの無料枠は全体で1GBです。人数に合わせて調整してください(例: 10人なら100MB)。</p><div class="row"><input class="in" id="cap" type="number" min="1" style="max-width:160px" value="${cap}"><span>MB</span><button class="btn pri" id="sc">保存</button></div></div>
+  <div class="card"><b>コイン</b><div class="row" style="flex-direction:column;align-items:stretch;margin-top:8px">${SETK.map(k=>`<label class="small mut">${k[1]}<input class="in" data-k="${k[0]}" type="${k[3]}" ${k[3]==='number'?'min="0"':''} value="${esc(get(k[0],k[2]))}"></label>`).join('')}<div class="row" style="justify-content:flex-end"><button class="btn pri" id="sk">保存</button></div></div></div>`);
+  $('#sc').onclick=async()=>{const v=Math.max(1,Math.round(+$('#cap').value||0));try{await setKV('user_cap_mb',v);toast('保存しました')}catch(e){toast(errT(e))}};
+  $('#sk').onclick=async()=>{try{for(const k of SETK){const el=document.querySelector('[data-k="'+k[0]+'"]');let v=el.value.trim();if(k[3]==='number')v=String(Math.max(0,Math.round(+v||0)));else if(!/^(\d+:\d+)(,\d+:\d+)*$/.test(v)&&v!==''){toast('ログインボーナスは「1:2,5:2」の形で入力してください');return}await setKV(k[0],v)}toast('保存しました')}catch(e){toast(errT(e))}}};
 boot();
 })();
 </script></body></html>

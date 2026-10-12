@@ -2,7 +2,57 @@
 <meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="まなびノート"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
-<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+.coinbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:26px 16px;border:1px solid var(--line);border-radius:20px;background:var(--soft);margin-top:14px}
+.coinbar b{font-family:var(--font-display);font-size:40px;line-height:1}
+.coinbar .cn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#F5B700;color:#fff}
+.gbtns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.gb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;font-size:20px;font-weight:700}
+.gb small{font-size:12px;font-weight:500;opacity:.85}
+.gb.low{opacity:.45}
+.rkrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.rk{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1.5px solid var(--rc);font-size:13px}
+.rk b{color:var(--rc)}
+.zk{margin-top:20px}
+.zk-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.zk-h b{color:var(--rc);font-size:20px;font-family:var(--font-display)}
+.zk-h .grow{flex:1}
+.zgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.zc{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1;padding:8px;border:2px solid var(--rc);border-radius:16px;background:var(--surface);text-align:center;min-width:0;overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+button.zc:active{transform:scale(.96)}
+.zc.lock{border-style:dashed;border-color:var(--line);background:var(--soft);color:var(--muted);font-size:22px}
+.zc.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 28%,transparent)}
+.zc .pi{width:100%;flex:1;min-height:0;display:grid;place-items:center}
+.zc .pi img,.pet-i img,.pet-peek img,.gc-i img{width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none}
+.zc .zn{font-size:11px;line-height:1.2;overflow-wrap:anywhere}
+.zc .zx{position:absolute;top:4px;right:6px;font-size:11px;color:var(--muted)}
+.zc .zm{position:absolute;top:4px;left:4px;color:var(--rc)}
+.zc.tz span{font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.pfb{display:grid;place-items:center;width:100%;height:100%;max-width:64px;max-height:64px;aspect-ratio:1;border-radius:50%;color:#fff;font-weight:700;font-size:22px}
+.petlayer{position:fixed;left:0;right:0;bottom:calc(8px + env(safe-area-inset-bottom,0px));height:68px;pointer-events:none;z-index:3;overflow:hidden}
+.pet-w{position:absolute;left:0;bottom:0;width:60px;height:60px;animation:petwalk 28s linear infinite;will-change:transform}
+.pet-i{width:100%;height:100%;animation:petbob .45s ease-in-out infinite alternate}
+@keyframes petbob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+@keyframes petwalk{0%{transform:translateX(8px) scaleX(1)}48%{transform:translateX(calc(100vw - 68px)) scaleX(1)}50%{transform:translateX(calc(100vw - 68px)) scaleX(-1)}98%{transform:translateX(8px) scaleX(-1)}100%{transform:translateX(8px) scaleX(1)}}
+.pet-peek{position:absolute;bottom:0;width:84px;height:84px;transform:translateY(108%);animation:petpeek 13s ease-in-out infinite;pointer-events:none;z-index:1}
+@keyframes petpeek{0%,58%{transform:translateY(108%)}66%,82%{transform:translateY(6%)}90%,100%{transform:translateY(108%)}}
+@media (prefers-reduced-motion:reduce){.pet-w,.pet-i,.pet-peek{animation:none}.pet-peek{transform:translateY(20%)}}
+.gres{position:fixed;inset:0;z-index:70;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px 16px;opacity:0;transition:opacity .3s var(--ease);overflow:auto}
+.gres.in{opacity:1}
+.gcards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:min(640px,100%)}
+.gcards.one{grid-template-columns:minmax(0,200px)}
+@media (max-width:520px){.gcards:not(.one){grid-template-columns:repeat(3,minmax(0,1fr))}}
+.gc{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px 6px;border:2px solid var(--rc);border-radius:16px;background:var(--surface);text-align:center;opacity:0;animation:gcin .55s var(--ease) forwards}
+.gc.top{box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 30%,transparent),0 0 26px color-mix(in srgb,var(--rc) 55%,transparent)}
+.gc-i{width:100%;aspect-ratio:1;display:grid;place-items:center}
+.gc-t{font-weight:700;font-size:14px;overflow-wrap:anywhere}
+.gc-n{font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+.gc-r{font-size:12px;font-weight:700;color:var(--rc)}
+.gc-new{position:absolute;top:-8px;left:-6px;background:var(--bad);color:#fff;font-style:normal;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px}
+@keyframes gcin{from{opacity:0;transform:translateY(16px) scale(.86) rotateY(80deg)}to{opacity:1;transform:none}}
+.gres-b{display:flex;gap:12px}
+@media (prefers-reduced-motion:reduce){.gc{animation:none;opacity:1}}
+</style></head><body>
 
 
 <style>/*HIGURE-START*/
@@ -438,6 +488,7 @@ const P={
  zoomOut:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5M8 11h6"/>',
  priv:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6"/>'
 };
+P.gift='<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 001 1h12a1 1 0 001-1v-8M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/>';P.coin='<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 010 3h-3a1.5 1.5 0 000 3H15"/>';
 const svg=(k,s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k]}</svg>`;
 
 /* ---------- 状態(この端末のlocalStorageに保存) ---------- */
@@ -491,9 +542,9 @@ const DEF_A=[['first_set','はじめの単語帳','単語帳を1つ作る','sets
 const DEF_T=[['t0','見習い','学習者',null],['t1','単語の','芽','first_set'],['t2','めくりの','名人','flip50'],['t3','暗記の','達人','know10'],['t4','時間の','挑戦者','timer1'],['t5','資料の','番人','pdf1'],['t6','計画の','人','ev1'],['t7','仲間と','ともに','grp'],['t8','1時間の','旅人','h1'],['t9','10時間の','探究者','h10'],['t10','継続は','力なり','st3']].map(a=>({id:a[0],front:a[1],back:a[2],name:a[1]+a[2],need_ach:a[3]}));
 let ACH=[],TITLES=[];
 const statVal=k=>k==='total_sec'?totalSec():k==='streak'?streakMax():(+S.stats[k]||0);
-function setDefs(a,t){ACH=a.map(x=>({id:x.id,n:x.name,d:x.descr||'',ok:()=>statVal(x.stat)>=+x.threshold}));TITLES=t.map(x=>{const f=x.front||'',b=x.back||(f?'':x.name);return{id:x.id,f,b,n:f+b,need:x.need_ach||null}});if(!TITLES.length)TITLES=[{id:'t0',f:'見習い',b:'学習者',n:'見習い学習者',need:null}]}
+function setDefs(a,t){ACH=a.map(x=>({id:x.id,n:x.name,d:x.descr||'',ok:()=>statVal(x.stat)>=+x.threshold}));TITLES=t.map(x=>{const f=x.front||'',b=x.back||(f?'':x.name);return{id:x.id,f,b,n:f+b,need:x.need_ach||null,g:x.gacha_rank||null}});if(!TITLES.length)TITLES=[{id:'t0',f:'見習い',b:'学習者',n:'見習い学習者',need:null}]}
 function initDefs(){let c=null;try{c=JSON.parse(localStorage.getItem('manabi.defs')||'null')}catch(e){}setDefs(c&&c.a&&c.a.length?c.a:DEF_A,c&&c.t&&c.t.length?c.t:DEF_T)}
-const titleOk=t=>!t.need||S.ach[t.need];
+const titleOk=t=>(S.me&&S.me.own||[]).includes(t.id)||(!t.g&&(!t.need||S.ach[t.need]));
 const titleById=id=>TITLES.find(t=>t.id===id)||TITLES[0];
 const tfOf=()=>(S.user&&(S.user.tf||S.user.title))||'t0',tbOf=()=>(S.user&&(S.user.tb||S.user.title))||'t0';
 const titleName=()=>titleById(tfOf()).f+titleById(tbOf()).b;
@@ -548,7 +599,7 @@ function render(){
   $('#hdr').hidden=!authed;
   $('#menubtn').innerHTML=svg('menu');$('#closebtn').innerHTML=svg('x');
   $('#modebtn').innerHTML=svg(S.mode==='group'?'group':'user',18)+'<span>'+(S.mode==='group'?'グループ':'プライベート')+'</span>';
-  $('#menunav').innerHTML=[['mypage','user','マイページ'],['profile','idcard','登録情報'],['time','clock','勉強時間'],['cal','cal','カレンダー'],['news','bell','お知らせ'],['terms','past','規約']].map(m=>`<button data-act="menuGo" data-to="${m[0]}">${svg(m[1])}<span>${m[2]}</span>${m[0]==='news'?'<i class="nd"></i>':''}<span class="chev">${svg('chev',18)}</span></button>`).join('');newsDot();
+  $('#menunav').innerHTML=[['mypage','user','マイページ'],['profile','idcard','登録情報'],['time','clock','勉強時間'],['cal','cal','カレンダー'],['gacha','gift','ガチャ'],['news','bell','お知らせ'],['terms','past','規約']].map(m=>`<button data-act="menuGo" data-to="${m[0]}">${svg(m[1])}<span>${m[2]}</span>${m[0]==='news'?'<i class="nd"></i>':''}<span class="chev">${svg('chev',18)}</span></button>`).join('');newsDot();
   post=null;const m=$('#main');
   const key=view.name+(view.name==='onb'&&S.user?':'+S.user.step:'')+(view.name==='files'?':'+view.cat:'')+(view.name==='subj'?':'+view.sub:'');
   const changed=key!==lastKey;
@@ -556,6 +607,7 @@ function render(){
   if(changed){m.scrollTop=0;const el=m.firstElementChild;if(el&&!reduceMotion())el.classList.add('in-'+navDir)}
   lastKey=key;navDir='fade';
   if(post)post();
+  petSync();
 }
 
 /* ---------- トースト・シート ---------- */
@@ -836,7 +888,7 @@ V.mypage=()=>{const u=S.user;const got=ACH.filter(a=>S.ach[a.id]);
 function viewMi(){const uid=view.uid;if(!uid||!S.myGroup||!S.groups[S.myGroup])return null;const m=memberInfo(S.myGroup,uid);return m.self?null:m}
 V.titles=()=>{const mi=viewMi(),cur=mi?mi.title:titleName();
   const sec=(part,label)=>{const sel=mi?null:(part==='f'?tfOf():tbOf());
-    const cells=TITLES.map(x=>{const ok=mi?(!x.need||mi.ach.includes(x.need)):titleOk(x);
+    const cells=TITLES.map(x=>{const ok=mi?(!x.g&&(!x.need||mi.ach.includes(x.need))):titleOk(x);
       if(!ok)return`<div class="item blank" aria-hidden="true"></div>`;const on=!mi&&x.id===titleById(sel).id,txt=part==='f'?x.f:x.b;
       return mi?`<div class="item tcell"><span class="t">${esc(txt)}</span></div>`:`<button class="item tcell ${on?'cur':''}" data-act="titleSet" data-part="${part}" data-id="${x.id}" aria-pressed="${on}"><span class="t">${esc(txt)}</span>${on?svg('check',18):''}</button>`}).join('');
     return`<div class="mp-sec"><h3 style="margin:18px 4px 8px">${label}</h3><div class="list">${cells}</div></div>`};
@@ -868,7 +920,7 @@ V.member=()=>{if(S.mode!=='group'||!S.myGroup)return V.home();const m=memberInfo
   return`<div class="mypage withback"><div class="mp-back"><button class="iconbtn" data-act="back" aria-label="戻る">${svg('back')}</button></div><div class="mp-icon">${avatar(m)}</div>
   <div class="mp-nick"><h1>${m.uid===ownerOf(S.groups[S.myGroup])?crown(26):''}${esc(m.nick)}</h1><span class="muted">@${esc(m.uid)}</span></div>
   <div class="mp-rest"><div><h3>肩書</h3>${esc(m.title)}</div>${m.birth?`<div><h3>誕生日</h3>${fmtMD(m.birth)}</div>`:''}<div><h3>総合勉強時間</h3>${fmtDur(m.sec)}</div>
-  <button class="mplink" data-act="goTitles" data-uid="${esc(m.uid)}">肩書一覧<span class="mpl-r">${TITLES.filter(x=>!x.need||m.ach.includes(x.need)).length}/${TITLES.length}${svg('chev',16)}</span></button>
+  <button class="mplink" data-act="goTitles" data-uid="${esc(m.uid)}">肩書一覧<span class="mpl-r">${TITLES.filter(x=>!x.g&&(!x.need||m.ach.includes(x.need))).length}/${TITLES.length}${svg('chev',16)}</span></button>
   <button class="mplink" data-act="goAchs" data-uid="${esc(m.uid)}">実績一覧<span class="mpl-r">${got.length}/${ACH.length}${svg('chev',16)}</span></button></div></div>`};
 V.profile=()=>{const u=S.user;const ed=!!view.edit;
   const jb=u.birth.replace(/^(\d+)-(\d+)-(\d+)$/,'$1年$2月$3日');
@@ -1012,11 +1064,11 @@ const mine=x=>!isG()||(!!x&&x.by===BY());
 const canDel=x=>!isG()||(!!x&&x.by===BY())||isOwner(S.myGroup);
 const bestOf=s=>(S.best&&S.best[s.id])||s.best||0;
 async function gdo(fn){try{const r=await fn();if(r&&r.error)throw r.error;if(r&&Array.isArray(r.data)&&!r.data.length)throw new Error('not allowed');await loadGroups();return true}catch(e){toast(errMsg(e));return false}}
-const SOFT=new Set(['home','vocab','files','subj','cal','time','mypage','news','newsd','members','member','titles','achs','terms']);
+const SOFT=new Set(['home','gacha','vocab','files','subj','cal','time','mypage','news','newsd','members','member','titles','achs','terms']);
 function softRender(){if(SOFT.has(view.name)&&!document.querySelector('#layer .sheet')&&!$('#focus')&&!(view.name==='terms'&&view.gate))render()}
 
 let syncT=0,lastSync='';
-function syncSoon(){if(!SB||AUTH!=='in'||!S.user||!S.user.done||!ME)return;clearTimeout(syncT);syncT=setTimeout(async()=>{const p=JSON.stringify([S.stats,S.ach]);if(p===lastSync||!online())return;try{const r=await SB.from('profiles').update({stats:S.stats,ach:S.ach}).eq('id',ME.id);if(!r.error)lastSync=p}catch(e){}},2500)}
+function syncSoon(){if(!SB||AUTH!=='in'||!S.user||!S.user.done||!ME)return;clearTimeout(syncT);syncT=setTimeout(async()=>{const p=JSON.stringify([S.stats,S.ach]);if(p===lastSync||!online())return;try{const r=await SB.from('profiles').update({stats:S.stats,ach:S.ach}).eq('id',ME.id);if(!r.error){lastSync=p;loadMe().then(softRender)}}catch(e){}},2500)}
 
 function addLog(sec,src){sec=Math.round(sec);while(sec>0){const c=Math.min(sec,86400);sec-=c;const e={d:ymd(new Date()),sec:c,src};S.log.push(e);S.outbox.push(Object.assign({k:rid()},e))}save();flushOutbox()}
 let flushing=false;
@@ -1026,7 +1078,7 @@ async function flushOutbox(){if(flushing||!SB||AUTH!=='in'||!S.outbox.length||!o
 
 async function loadDefs(){try{const [a,t,s]=await Promise.all([SB.from('achievements').select('*').order('sort'),SB.from('titles').select('*').order('sort'),SB.from('app_settings').select('key,value')]);
   if(!a.error&&!t.error&&a.data.length){setDefs(a.data,t.data);try{localStorage.setItem('manabi.defs',JSON.stringify({a:a.data,t:t.data}))}catch(e){}}
-  if(s&&!s.error){const m=s.data.find(x=>x.key==='user_cap_mb');if(m)CFG.capMB=+m.value}}catch(e){}}
+  if(s&&!s.error){const m=s.data.find(x=>x.key==='user_cap_mb');if(m)CFG.capMB=+m.value;CFG.set={};s.data.forEach(x=>{CFG.set[x.key]=x.value})}}catch(e){}}
 async function loadNews(){const r=await SB.from('announcements').select('id,title,body,created_at').order('created_at',{ascending:false}).limit(50);if(r.error)throw r.error;
   NEWS.items=r.data.map(x=>({id:x.id,title:x.title,body:x.body,fmt:'html',at:Date.parse(x.created_at)||0}));try{localStorage.setItem('manabi.news',JSON.stringify(NEWS.items))}catch(e){}}
 async function loadLogs(){let all=[];for(let p=0;p<10;p++){const r=await SB.from('study_logs').select('d,sec,src').order('d',{ascending:false}).range(p*1000,p*1000+999);if(r.error)throw r.error;all=all.concat(r.data);if(r.data.length<1000)break}
@@ -1071,7 +1123,7 @@ async function checkWarnings(){try{const r=await SB.from('warnings').select('rea
   sheet(`<h3>運営からの警告</h3>${r.data.map(w=>`<p>${esc(w.reason||'規約に違反するおそれがある行為がありました。')}</p>`).join('')}<p class="muted">警告が2回になると、アカウントは永久に利用できなくなります。</p><button class="btn primary block" data-act="warnOk">確認しました</button>`)}catch(e){}}
 async function checkBan(){const r=await SB.from('profiles').select('banned').eq('id',ME.id).maybeSingle();if(r.data&&r.data.banned){AUTH='banned';render()}}
 
-async function bgLoad(){await Promise.allSettled([loadDefs().then(checkAch),loadLogs(),loadNews(),loadGroups()]);flushOutbox();softRender();showWelcome();checkWarnings()}
+async function bgLoad(){await Promise.allSettled([loadDefs().then(checkAch),loadGacha(),loadMe().then(loginBonus),loadLogs(),loadNews(),loadGroups()]);flushOutbox();softRender();showWelcome();checkWarnings()}
 let pollBusy=false;
 async function refresh(){if(pollBusy||!SB||AUTH!=='in'||!ME||!online())return;pollBusy=true;try{await checkBan();if(AUTH==='in'){await Promise.allSettled([loadNews(),loadGroups()]);flushOutbox();softRender()}}catch(e){}pollBusy=false}
 setInterval(()=>{if(document.visibilityState==='visible')refresh()},60000);
@@ -1088,7 +1140,7 @@ async function enter(user){
   else if(prof){
     if(prof.banned){AUTH='banned';render();return}
     S.user={id:user.id,email,nick:prof.nick,uid:prof.uid,birth:prof.birth||'',icon:prof.icon||'',tf:prof.title_front||prof.title_id||'t0',tb:prof.title_back||prof.title_id||'t0',done:true,termsV:pp&&pp.terms_v||null,step:0};
-    Object.keys(prof.stats||{}).forEach(k=>{S.stats[k]=Math.max(+S.stats[k]||0,+prof.stats[k]||0)});S.ach=Object.assign({},prof.ach||{},S.ach);lastSync=JSON.stringify([S.stats,S.ach])}
+    Object.keys(prof.stats||{}).forEach(k=>{S.stats[k]=Math.max(+S.stats[k]||0,+prof.stats[k]||0)});S.ach=Object.assign({},prof.ach||{},S.ach);lastSync=JSON.stringify([S.stats,S.ach]);const mm=gm();mm.coins=prof.coins||0;mm.pets=prof.pets||{};mm.own=prof.own_titles||[];mm.main=prof.pet_main||'';mm.days=prof.login_days||0}
   else{if(!S.user||S.user.done||S.user.id!==user.id)S.user={id:user.id,email,step:0,nick:'',uid:'',birth:'',icon:'',tf:'t0',tb:'t0',done:false};S.user.termsV=pp&&pp.terms_v||null}
   AUTH='in';render();
   if(err)return;
@@ -1391,12 +1443,57 @@ function focusPaint(){const el=$('#focus');if(!el)return;const run=S.timer.run;e
 function openFocus(){const old=$('#focus');if(old&&!old.classList.contains('leave'))return;if(old)old.remove();
   const el=document.createElement('div');el.id='focus';el.className='focus';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','勉強タイマー');
   el.innerHTML=`<div class="fx-bg" aria-hidden="true"><i class="fx-blob"></i><i class="fx-blob"></i><i class="fx-blob"></i></div><button class="iconbtn fx-close" data-act="focusClose" aria-label="小さくする">${svg('x')}</button><div class="fx-body"><p class="fx-state" id="fxState"></p><div class="fx-clock roll" id="fxClock" role="timer" data-act="fxMode" style="cursor:pointer"></div><p class="fx-mode" id="fxMode"></p></div><div class="fx-ctl"><button class="btn fx-pause" id="fxPause" data-act="focusPause"></button><button class="btn fx-btn" data-act="focusEnd">終了して保存</button></div>`;
-  document.body.appendChild(el);focusPaint();fxLabel();fxTick();void el.offsetWidth;el.classList.add('in');
+  document.body.appendChild(el);petSync();petPeek(el);focusPaint();fxLabel();fxTick();void el.offsetWidth;el.classList.add('in');
   try{const r=document.documentElement;const f=r.requestFullscreen||r.webkitRequestFullscreen;if(f){const pr=f.call(r);if(pr&&pr.catch)pr.catch(()=>{})}}catch(e){}
   wlGet()}
 function closeFocus(){const el=$('#focus');if(!el)return;el.classList.add('leave');wlRelease();fxBgStop();
   try{if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}else if(document.webkitFullscreenElement&&document.webkitExitFullscreen){document.webkitExitFullscreen()}}catch(e){}
-  setTimeout(()=>{if(el.parentNode)el.remove()},520)}
+  setTimeout(()=>{if(el.parentNode)el.remove();petSync()},520)}
+/* ---------- コイン・ガチャ・ペット ---------- */
+let PETS=[],RANKS=[],gBusy=false;
+try{const c=JSON.parse(localStorage.getItem('manabi.gacha')||'null');if(c){PETS=c.p||[];RANKS=c.r||[]}}catch(e){}
+function gm(){return S.me||(S.me={coins:0,pets:{},own:[],main:'',days:0})}
+const RCOL=['#8A93A6','#2250D8','#8B3FD9','#E0A100','#D8387A','#17894F'];
+const rcol=id=>RCOL[Math.max(0,RANKS.findIndex(r=>r.id===id))%RCOL.length];
+const petUrl=f=>String(CFG.url||'').replace(/\/$/,'')+'/storage/v1/object/public/pets/'+encodeURIComponent(f);
+const petById=id=>PETS.find(p=>p.id===id);
+const pimg=(p,nm)=>p&&p.img?`<img src="${esc(petUrl(p.img))}" alt="" draggable="false">`:`<span class="pfb" style="background:${rcol(p?p.rank:'')}">${esc((nm||(p&&p.name)||'?').slice(0,1))}</span>`;
+const gcost=n=>+((CFG.set||{})[n===1?'gacha_cost1':'gacha_cost10'])||(n===1?3:30);
+function rates(){const has=r=>PETS.some(p=>p.rank===r.id)||TITLES.some(t=>t.g===r.id);const L=RANKS.filter(r=>+r.rate>0&&has(r));const tot=L.reduce((a,r)=>a+(+r.rate),0)||1;return RANKS.map(r=>({id:r.id,name:r.name,pct:L.includes(r)?(+r.rate)/tot*100:0}))}
+async function loadGacha(){try{const [r,p]=await Promise.all([SB.from('gacha_ranks').select('*').order('sort'),SB.from('pets').select('*').eq('active',true).order('sort')]);if(r.error||p.error)return;RANKS=r.data;PETS=p.data;try{localStorage.setItem('manabi.gacha',JSON.stringify({r:RANKS,p:PETS}))}catch(e){}petSync()}catch(e){}}
+async function loadMe(){try{const r=await SB.from('profiles').select('coins,pets,own_titles,pet_main,login_days').eq('id',ME.id).maybeSingle();if(r.error||!r.data)return;const m=gm();m.coins=r.data.coins||0;m.pets=r.data.pets||{};m.own=r.data.own_titles||[];m.main=r.data.pet_main||'';m.days=r.data.login_days||0;save();petSync()}catch(e){}}
+async function loginBonus(){try{const r=await SB.rpc('claim_login');if(r.error||!r.data||!r.data.claimed)return;const m=gm();m.coins=r.data.coins;m.days=r.data.day;save();
+  const html=`<div style="text-align:center;padding:8px 0 4px"><div style="color:var(--muted)">ログインボーナス ${r.data.day}日目</div><div class="coinbar" style="margin:14px 0"><span class="cn">${svg('coin',26)}</span><b>+${r.data.gain}</b></div><button class="btn primary block" data-act="closeSheet">受け取る</button></div>`;
+  if(document.querySelector('#layer .sheet')||$('#focus'))toast('ログインボーナス +'+r.data.gain+'コイン');else sheet(html);softRender()}catch(e){}}
+function petSync(){let L=$('#petlayer');const p=petById(gm().main);const show=AUTH==='in'&&S.user&&S.user.done&&p&&(view.name==='home'||view.name==='time')&&!$('#focus');
+  if(!show){if(L)L.remove();return}
+  const sig=p.id+'|'+p.img;if(L&&L.dataset.sig===sig)return;if(L)L.remove();
+  L=document.createElement('div');L.id='petlayer';L.className='petlayer';L.dataset.sig=sig;L.setAttribute('aria-hidden','true');L.innerHTML=`<div class="pet-w"><div class="pet-i">${pimg(p)}</div></div>`;document.body.appendChild(L)}
+function petPeek(el){const p=petById(gm().main);if(!p)return;const d=document.createElement('div');d.className='pet-peek';d.innerHTML=pimg(p);const place=()=>{d.style.left=(8+Math.random()*Math.max(10,innerWidth-100))+'px'};place();d.addEventListener('animationiteration',place);el.appendChild(d)}
+V.gacha=()=>{const m=gm(),tab=view.tab==='zukan'?'zukan':'pull',rt=rates();
+  const tabs=`<div class="chips"><button class="chip ${tab==='pull'?'on':''}" data-act="gTab" data-tab="pull" aria-pressed="${tab==='pull'}"><span>ガチャ</span></button><button class="chip ${tab==='zukan'?'on':''}" data-act="gTab" data-tab="zukan" aria-pressed="${tab==='zukan'}"><span>図鑑</span></button></div>`;
+  if(tab==='pull'){const c1=gcost(1),c10=gcost(10);
+    return`<div class="view">${sub('ガチャ')}${tabs}<div class="coinbar"><span class="cn">${svg('coin',26)}</span><b>${m.coins}</b></div>
+    <div class="gbtns"><button class="btn primary gb ${m.coins<c1?'low':''}" data-act="gachaPull" data-n="1">1連<small>${c1}コイン</small></button><button class="btn primary gb ${m.coins<c10?'low':''}" data-act="gachaPull" data-n="10">10連<small>${c10}コイン</small></button></div>
+    <div class="rkrow">${rt.filter(r=>r.pct>0).map(r=>`<span class="rk" style="--rc:${rcol(r.id)}"><b>${esc(r.id)}</b>${Math.round(r.pct*10)/10}%</span>`).join('')}</div></div>`}
+  const secs=rt.map(r=>{const ps=PETS.filter(p=>p.rank===r.id),ts=TITLES.filter(t=>t.g===r.id),n=ps.length+ts.length;if(!n)return'';
+    const got=ps.filter(p=>m.pets[p.id]).length+ts.filter(t=>m.own.includes(t.id)).length;
+    const cells=ps.map(p=>m.pets[p.id]?`<button class="zc ${m.main===p.id?'cur':''}" data-act="petSet" data-id="${esc(p.id)}" aria-pressed="${m.main===p.id}"><span class="pi">${pimg(p)}</span><span class="zn">${esc(p.name)}</span>${m.pets[p.id]>1?`<span class="zx">×${m.pets[p.id]}</span>`:''}${m.main===p.id?`<span class="zm">${svg('check',16)}</span>`:''}</button>`:`<div class="zc lock" aria-hidden="true">?</div>`).join('')
+      +ts.map(t=>m.own.includes(t.id)?`<div class="zc tz"><span>${esc(t.n)}</span></div>`:`<div class="zc lock" aria-hidden="true">?</div>`).join('');
+    return`<section class="zk" style="--rc:${rcol(r.id)}"><div class="zk-h"><b>${esc(r.id)}</b><span>${esc(r.name)}</span><span class="grow"></span><span class="muted">${got}/${n}</span></div><div class="zgrid">${cells}</div></section>`}).join('');
+  return`<div class="view">${sub('ガチャ')}${tabs}${secs||'<div class="empty">準備中です</div>'}</div>`};
+function showGachaRes(items){const old=$('#gres');if(old)old.remove();const el=document.createElement('div');el.id='gres';el.className='gres';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+  const one=items.length===1,top=id=>RANKS.findIndex(r=>r.id===id)>=Math.max(1,RANKS.length-2);
+  el.innerHTML=`<div class="gcards ${one?'one':''}">${items.map((it,i)=>`<div class="gc ${top(it.rank)?'top':''}" style="--rc:${rcol(it.rank)};animation-delay:${i*110}ms"><div class="gc-i">${it.kind==='pet'?pimg({img:it.img,rank:it.rank,name:it.name},it.name):`<span class="gc-t">${esc(it.name)}</span>`}</div>${it.kind==='pet'?`<div class="gc-n">${esc(it.name)}</div>`:''}<div class="gc-r">${esc(it.rank)}</div>${it.new?'<i class="gc-new">NEW</i>':''}</div>`).join('')}</div>
+  <div class="gres-b"><button class="btn" data-act="gresClose">閉じる</button><button class="btn primary" data-act="gachaPull" data-n="${items.length}">もう一度</button></div>`;
+  document.body.appendChild(el);void el.offsetWidth;el.classList.add('in')}
+A.gresClose=()=>{const el=$('#gres');if(!el)return;el.classList.remove('in');setTimeout(()=>el.remove(),300)};
+A.gTab=t=>{view.tab=t.dataset.tab;render()};
+A.petSet=t=>{const id=t.dataset.id,m=gm();if(!m.pets[id])return;m.main=id;save();render();petSync();if(SB&&ME)SB.from('profiles').update({pet_main:id}).eq('id',ME.id).then(()=>{})};
+A.gachaPull=async t=>{const n=+t.dataset.n===10?10:1,m=gm();if(gBusy)return;if(m.coins<gcost(n)){toast('コインが足りません');return}
+  gBusy=true;let r;try{r=await SB.rpc('gacha_pull',{n})}catch(e){r={error:e}}gBusy=false;
+  if(r.error){const x=String(r.error.message||'');toast(/not enough/.test(x)?'コインが足りません':/empty/.test(x)?'ガチャは準備中です':errMsg(r.error));loadMe().then(()=>render());return}
+  const d=r.data,mm=gm();mm.coins=d.coins;d.items.forEach(it=>{if(it.kind==='pet'){mm.pets[it.id]=(mm.pets[it.id]||0)+1;if(!mm.main)mm.main=it.id}else if(!mm.own.includes(it.id))mm.own.push(it.id)});save();showGachaRes(d.items);render();petSync();loadMe().then(()=>{if(view.name==='gacha')render()})};
 A.tmStart=()=>{const t=S.timer;if(!t.run){t.start=Date.now();t.run=true}save();openFocus();render()};
 A.focusOpen=()=>openFocus();
 A.focusPause=()=>{const t=S.timer;if(t.run){t.acc+=Date.now()-t.start;t.run=false}else{t.start=Date.now();t.run=true}save();focusPaint()};
