@@ -1,0 +1,9 @@
+ヒグレゴシック Black (Higure Gothic Black)
+Copyright 2021 The Zen Project Authors (https://github.com/positype/Zen-Project)
+デザイン: Yoshimichi Ohira / Positype
+
+このフォントは、SIL Open Font License, Version 1.1 のもとで、配布されています。
+ライセンスの全文: https://scripts.sil.org/OFL
+
+「higure-black.woff」は、上のフォントから、アプリで使う文字だけに絞って(サブセット化)、
+WOFF形式に変換したものです。
